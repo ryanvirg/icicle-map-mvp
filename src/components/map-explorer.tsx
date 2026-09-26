@@ -6,31 +6,34 @@ import { SourcesBar } from "@/components/sources-bar";
 import { WatershedMap } from "@/components/watershed-map";
 import { PRELOADED_SCENARIOS, type Scenario } from "@/data/scenarios";
 import { WATERSHED_FEATURES, type WatershedFeature } from "@/data/watershed";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 
-export function MapExplorer() {
+function MapExplorerInner() {
+  const searchParams = useSearchParams();
   const [scenarios, setScenarios] = useState<Scenario[]>(PRELOADED_SCENARIOS);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(
     PRELOADED_SCENARIOS[0].id,
   );
   const [feature, setFeature] = useState<WatershedFeature | null>(null);
 
-  useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("feature");
-    if (!id) return;
-    const match = WATERSHED_FEATURES.find((f) => f.id === id);
-    if (match) setFeature(match);
-  }, []);
+  const featureFromUrl = searchParams.get("feature");
+  const urlFeature = featureFromUrl
+    ? WATERSHED_FEATURES.find((f) => f.id === featureFromUrl) ?? null
+    : null;
+  const activeFeature = feature ?? urlFeature;
 
   const scenario = scenarios.find((s) => s.id === selectedScenarioId) ?? null;
   const compareScenario = useMemo(() => {
     if (!scenario) return null;
-    return scenarios.find(
-      (s) =>
-        s.hydrologyId === scenario.hydrologyId &&
-        s.dateStart === scenario.dateStart &&
-        s.id !== scenario.id,
-    ) ?? null;
+    return (
+      scenarios.find(
+        (s) =>
+          s.hydrologyId === scenario.hydrologyId &&
+          s.dateStart === scenario.dateStart &&
+          s.id !== scenario.id,
+      ) ?? null
+    );
   }, [scenario, scenarios]);
 
   return (
@@ -48,7 +51,7 @@ export function MapExplorer() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <WatershedMap
-          selectedId={feature?.id ?? null}
+          selectedId={activeFeature?.id ?? null}
           onSelect={setFeature}
         />
         <ScenarioPanel
@@ -60,12 +63,26 @@ export function MapExplorer() {
       </div>
 
       <DetailPanel
-        feature={feature}
+        feature={activeFeature}
         scenario={scenario}
         compareScenario={compareScenario}
       />
 
       <SourcesBar hydrologyId={scenario?.hydrologyId} />
     </div>
+  );
+}
+
+export function MapExplorer() {
+  return (
+    <Suspense
+      fallback={
+        <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+          Loading explorer…
+        </div>
+      }
+    >
+      <MapExplorerInner />
+    </Suspense>
   );
 }
