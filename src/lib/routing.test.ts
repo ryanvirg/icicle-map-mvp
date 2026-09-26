@@ -29,5 +29,7 @@ describe("routing", () => {
       "2024-10-31",
     );
     assert.ok(a < b);
+    assert.ok(a > 3_000);
+    assert.ok(b > 8_000);
   });
 });

@@ -80,8 +80,8 @@ export function FlowChart({
     <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       {caption && <p className="mt-1 text-xs text-slate-600">{caption}</p>}
-      <div className="mt-2 h-64 w-full min-w-0">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="mt-2 h-56 w-full min-w-0" style={{ minHeight: 224 }}>
+        <ResponsiveContainer width="100%" height={224} minWidth={180}>
           <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis

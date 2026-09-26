@@ -22,18 +22,19 @@ async function waitForServer(url, attempts = 40) {
 async function capture(browser, url, outfile, width, height) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
-  await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
+  await page.goto(url, { waitUntil: "networkidle0", timeout: 120000 });
   await page.waitForFunction(
     () => {
-      const map = document.querySelector('[data-map-ready="true"]');
-      const chart = document.body.innerText.includes(
-        "Historical Channel — routed flow",
+      const hasMap = document.querySelector(".maplibregl-canvas");
+      const hasChart = document.querySelector(
+        'svg[aria-label="Historical Channel hydrograph"]',
       );
-      return Boolean(map && chart);
+      return Boolean(hasMap && hasChart);
     },
-    { timeout: 45000 },
+    { timeout: 90000 },
   );
-  await page.screenshot({ path: outfile, fullPage: true });
+  await new Promise((r) => setTimeout(r, 12000));
+  await page.screenshot({ path: outfile, fullPage: false });
   await page.close();
 }
 
@@ -43,20 +44,21 @@ async function main() {
 
   const browser = await puppeteer.launch({
     executablePath: "/usr/local/bin/google-chrome",
-    headless: true,
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--enable-webgl",
-      "--use-gl=angle",
+      "--window-position=0,0",
     ],
+    defaultViewport: null,
   });
 
   const desktop = path.join(OUT_DIR, "icicle-map-mvp.png");
   const mobile = path.join(OUT_DIR, "icicle-map-mvp-mobile.png");
 
-  await capture(browser, BASE, desktop, 1440, 1600);
-  await capture(browser, BASE, mobile, 390, 1200);
+  await capture(browser, BASE, desktop, 1440, 900);
+  await capture(browser, BASE, mobile, 390, 844);
 
   await browser.close();
   console.log("Wrote", desktop);

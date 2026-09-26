@@ -47,10 +47,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-4">
+      <main className="relative flex-1 w-full overflow-hidden">
         {children}
       </main>
-      <footer className="border-t border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
+      <footer className="hidden border-t border-slate-200 bg-white px-4 py-2 text-xs text-slate-600 md:block">
         <p>
           Illustrative pre-run hydrology and routing — not operational advice.
           Hydrology is not re-run in the browser.{" "}

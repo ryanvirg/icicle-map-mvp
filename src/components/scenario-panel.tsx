@@ -14,6 +14,7 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onScenariosChange: (next: Scenario[]) => void;
+  compact?: boolean;
 };
 
 export function ScenarioPanel({
@@ -21,6 +22,7 @@ export function ScenarioPanel({
   selectedId,
   onSelect,
   onScenariosChange,
+  compact,
 }: Props) {
   const selected = scenarios.find((s) => s.id === selectedId) ?? null;
 
@@ -40,13 +42,12 @@ export function ScenarioPanel({
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+    <section className={compact ? "p-2" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}>
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">Scenarios</h2>
-          <p className="text-xs text-slate-600">
-            Hydrology library id · date range · operating regime · readable
-            description. Pre-loaded pair shares hydrology and dates.
+          {!compact && <h2 className="text-sm font-semibold text-slate-900">Scenarios</h2>}
+          <p className="text-[11px] text-slate-600">
+            Pre-run hydrology · dates · regime · readable description.
           </p>
         </div>
         <Button

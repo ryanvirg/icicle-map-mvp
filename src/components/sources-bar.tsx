@@ -3,13 +3,18 @@ import { HYDROLOGY_LIBRARY } from "@/data/hydrology";
 type Props = {
   hydrologyId?: string;
   usgsSource?: string;
+  compact?: boolean;
 };
 
-export function SourcesBar({ hydrologyId, usgsSource }: Props) {
+export function SourcesBar({ hydrologyId, usgsSource, compact }: Props) {
   const hydro = HYDROLOGY_LIBRARY.find((h) => h.id === hydrologyId);
   return (
     <aside
-      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-600"
+      className={
+        compact
+          ? "text-[10px] leading-snug text-slate-600"
+          : "rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-600"
+      }
       aria-label="Data sources"
     >
       <span className="font-semibold text-slate-800">Sources · </span>

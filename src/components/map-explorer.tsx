@@ -16,6 +16,7 @@ function MapExplorerInner() {
     PRELOADED_SCENARIOS[0].id,
   );
   const [feature, setFeature] = useState<WatershedFeature | null>(null);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(true);
 
   const featureFromUrl = searchParams.get("feature");
   const urlFeature = featureFromUrl
@@ -37,38 +38,57 @@ function MapExplorerInner() {
   }, [scenario, scenarios]);
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-        <h1 className="text-lg font-semibold text-slate-900">
-          Icicle Creek watershed
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Map-first view of connectivity: alpine lakes, tributaries, diversions,
-          gages, and the Historical Channel. Choose a scenario before downstream
-          hydrographs; lake inflow uses pre-run hydrology alone.
-        </p>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-        <WatershedMap
-          selectedId={activeFeature?.id ?? null}
-          onSelect={setFeature}
-        />
-        <ScenarioPanel
-          scenarios={scenarios}
-          selectedId={selectedScenarioId}
-          onSelect={setSelectedScenarioId}
-          onScenariosChange={setScenarios}
-        />
-      </div>
-
-      <DetailPanel
-        feature={activeFeature}
-        scenario={scenario}
-        compareScenario={compareScenario}
+    <div className="relative h-[calc(100vh-3.25rem)] w-full min-h-[480px]">
+      <WatershedMap
+        className="absolute inset-0 h-full w-full"
+        selectedId={activeFeature?.id ?? null}
+        onSelect={(f) => {
+          setFeature(f);
+          setMobileDrawerOpen(true);
+        }}
       />
 
-      <SourcesBar hydrologyId={scenario?.hydrologyId} />
+      <aside
+        className={`absolute top-3 right-3 z-20 flex w-[min(100%-1.5rem,380px)] max-h-[calc(100%-1.5rem)] flex-col gap-2 overflow-hidden transition-transform md:translate-x-0 ${
+          mobileDrawerOpen ? "translate-x-0" : "translate-x-[calc(100%+1rem)]"
+        }`}
+      >
+        <button
+          type="button"
+          className="absolute -left-10 top-2 rounded-l-md bg-white px-2 py-1 text-xs font-medium shadow md:hidden"
+          onClick={() => setMobileDrawerOpen((o) => !o)}
+        >
+          {mobileDrawerOpen ? "Hide" : "Panel"}
+        </button>
+        <div className="overflow-y-auto rounded-xl border border-slate-200/90 bg-white/95 shadow-lg backdrop-blur-sm">
+          <div className="border-b border-slate-100 px-3 py-2">
+            <h1 className="text-sm font-semibold text-slate-900">
+              Icicle Creek scenarios
+            </h1>
+            <p className="text-[11px] text-slate-600">
+              Click the map · compare regimes at the Historical Channel
+            </p>
+          </div>
+          <ScenarioPanel
+            scenarios={scenarios}
+            selectedId={selectedScenarioId}
+            onSelect={setSelectedScenarioId}
+            onScenariosChange={setScenarios}
+            compact
+          />
+          <div className="border-t border-slate-100 p-2">
+            <DetailPanel
+              feature={activeFeature}
+              scenario={scenario}
+              compareScenario={compareScenario}
+              compact
+            />
+          </div>
+          <div className="border-t border-slate-100 p-2">
+            <SourcesBar hydrologyId={scenario?.hydrologyId} compact />
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -77,7 +97,7 @@ export function MapExplorer() {
   return (
     <Suspense
       fallback={
-        <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+        <div className="flex h-[calc(100vh-3.25rem)] items-center justify-center text-sm text-slate-600">
           Loading explorer…
         </div>
       }

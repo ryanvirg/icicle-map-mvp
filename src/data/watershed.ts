@@ -15,17 +15,30 @@ export type WatershedFeature = {
   seriesAvailable: string[];
 };
 
-/** Simplified connectivity along Icicle Creek (lng, lat). */
+/** Mainstem & major tributaries (lng, lat) — illustrative alignment around Leavenworth. */
 export const CREEK_LINE: [number, number][] = [
-  [-121.02, 47.52],
-  [-120.98, 47.54],
-  [-120.94, 47.56],
-  [-120.88, 47.58],
-  [-120.82, 47.59],
-  [-120.76, 47.595],
-  [-120.72, 47.598],
-  [-120.68, 47.6],
+  [-120.842, 47.523],
+  [-120.82, 47.538],
+  [-120.795, 47.552],
+  [-120.768, 47.562],
+  [-120.742, 47.572],
+  [-120.714, 47.588],
+  [-120.698, 47.592],
+  [-120.688, 47.594],
+  [-120.672, 47.596],
   [-120.661, 47.596],
+];
+
+export const FRENCH_CREEK_LINE: [number, number][] = [
+  [-120.72, 47.62],
+  [-120.702, 47.598],
+  [-120.695, 47.592],
+];
+
+export const LELAND_CREEK_LINE: [number, number][] = [
+  [-120.68, 47.61],
+  [-120.672, 47.598],
+  [-120.668, 47.594],
 ];
 
 export const WATERSHED_FEATURES: WatershedFeature[] = [
@@ -35,7 +48,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     kind: "lake",
     description:
       "IPID irrigation storage. 2026 release monitoring. Outlet combines release, seepage, and spill (QAPP).",
-    coordinates: [-121.02, 47.52],
+    coordinates: [-120.842, 47.523],
     seriesAvailable: ["lake_inflow", "lake_release"],
   },
   {
@@ -43,7 +56,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "Square Lake",
     kind: "lake",
     description: "IPID irrigation. Active storage ~2,130 ac-ft (2018 feasibility).",
-    coordinates: [-120.99, 47.535],
+    coordinates: [-120.818, 47.541],
     seriesAvailable: ["lake_inflow", "lake_release"],
   },
   {
@@ -51,7 +64,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "Klonaqua Lake",
     kind: "lake",
     description: "IPID irrigation. Monitored releases in 2026.",
-    coordinates: [-120.97, 47.545],
+    coordinates: [-120.798, 47.552],
     seriesAvailable: ["lake_inflow", "lake_release"],
   },
   {
@@ -59,7 +72,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "Eightmile Lake",
     kind: "lake",
     description: "IPID storage on the May 2026 sheet; not in 2026 automated release monitoring.",
-    coordinates: [-120.95, 47.55],
+    coordinates: [-120.778, 47.558],
     seriesAvailable: ["lake_inflow"],
   },
   {
@@ -67,7 +80,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "Upper & Lower Snow Lakes",
     kind: "lake",
     description: "USFWS / Reclamation system. Wilderness holdback tradeoff with anadromous zone flows.",
-    coordinates: [-120.93, 47.555],
+    coordinates: [-120.752, 47.568],
     seriesAvailable: ["lake_inflow", "lake_release"],
   },
   {
@@ -75,7 +88,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "French Creek",
     kind: "tributary",
     description: "2026 tributary monitoring. Bull trout temperature concern late season.",
-    coordinates: [-120.9, 47.57],
+    coordinates: [-120.695, 47.592],
     seriesAvailable: ["tributary_inflow"],
   },
   {
@@ -83,7 +96,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "Leland Creek",
     kind: "tributary",
     description: "2026 tributary monitoring.",
-    coordinates: [-120.87, 47.582],
+    coordinates: [-120.668, 47.594],
     seriesAvailable: ["tributary_inflow"],
   },
   {
@@ -92,7 +105,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     kind: "gage",
     description:
       "Icicle Creek above Snow Creek near Leavenworth. Live USGS when available; fixture fallback labeled.",
-    coordinates: [-120.82, 47.59],
+    coordinates: [-120.714, 47.588],
     seriesAvailable: ["observed_flow"],
   },
   {
@@ -100,7 +113,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "IPID diversion (RM 5.7)",
     kind: "diversion",
     description: "Irrigation district diversion downstream of the USGS gage.",
-    coordinates: [-120.78, 47.592],
+    coordinates: [-120.702, 47.591],
     seriesAvailable: ["diversion"],
   },
   {
@@ -108,7 +121,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     name: "LNFH diversion (RM 4.5)",
     kind: "diversion",
     description: "Leavenworth National Fish Hatchery supply.",
-    coordinates: [-120.74, 47.596],
+    coordinates: [-120.688, 47.594],
     seriesAvailable: ["diversion"],
   },
   {
@@ -117,7 +130,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     kind: "gage",
     description:
       "Preliminary telemetry. Routed scenario flow shows an uncertainty band because travel-time loss is unmeasured.",
-    coordinates: [-120.7, 47.598],
+    coordinates: [-120.672, 47.596],
     seriesAvailable: ["observed_flow", "routed_flow_band"],
   },
   {
@@ -126,7 +139,7 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     kind: "channel",
     description:
       "Comparison site for 60 and 100 cfs guiding principles. Scenario hydrograph requires a selected operating regime.",
-    coordinates: [-120.68, 47.6],
+    coordinates: [-120.665, 47.596],
     seriesAvailable: ["scenario_flow", "summer_volume"],
   },
   {
@@ -138,3 +151,9 @@ export const WATERSHED_FEATURES: WatershedFeature[] = [
     seriesAvailable: ["observed_flow"],
   },
 ];
+
+export const MAP_INITIAL_VIEW = {
+  longitude: -120.74,
+  latitude: 47.56,
+  zoom: 10.8,
+};
