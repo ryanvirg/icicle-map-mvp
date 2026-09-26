@@ -1,0 +1,17 @@
+{
+  "site": "12458000",
+  "name": "ICICLE CREEK AB SNOW C NR LEAVENWORTH WA",
+  "timezone": "America/Los_Angeles",
+  "dataAsOf": "2026-09-25",
+  "source": "fixture",
+  "series": [
+    { "date": "2026-07-01", "value": 412 },
+    { "date": "2026-07-15", "value": 385 },
+    { "date": "2026-08-01", "value": 298 },
+    { "date": "2026-08-15", "value": 245 },
+    { "date": "2026-09-01", "value": 198 },
+    { "date": "2026-09-15", "value": 165 },
+    { "date": "2026-10-01", "value": 142 },
+    { "date": "2026-10-15", "value": 128 }
+  ]
+}
