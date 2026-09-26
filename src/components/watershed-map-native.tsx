@@ -196,6 +196,16 @@ export function WatershedMapNative({
         map.getCanvas().style.cursor = "";
       });
 
+      const lngs = WATERSHED_FEATURES.map((f) => f.coordinates[0]);
+      const lats = WATERSHED_FEATURES.map((f) => f.coordinates[1]);
+      map.fitBounds(
+        [
+          [Math.min(...lngs) - 0.04, Math.min(...lats) - 0.03],
+          [Math.max(...lngs) + 0.04, Math.max(...lats) + 0.03],
+        ],
+        { padding: 48, duration: 0 },
+      );
+
       onReady();
     };
 
