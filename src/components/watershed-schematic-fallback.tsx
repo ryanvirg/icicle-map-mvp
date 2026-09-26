@@ -55,6 +55,7 @@ export function WatershedSchematicFallback({
       style={embedded ? undefined : { height: 420, minHeight: 420 }}
       data-testid="watershed-schematic-fallback"
       data-map-ready="true"
+      data-vectors-painted="true"
     >
       {reason && !embedded && (
         <p className="absolute left-2 top-2 z-10 max-w-[90%] rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-900">
