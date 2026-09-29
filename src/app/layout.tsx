@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Icicle Strategy — Watershed Map MVP",
+  title: "Icicle Creek Explorer",
   description:
-    "Map-first decision support slice for Icicle Creek scenarios and Historical Channel comparison.",
+    "Explore Icicle Creek and lake features on a GeoJSON-powered interactive map.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="h-dvh overflow-hidden">
         <AppShell>{children}</AppShell>
       </body>
     </html>

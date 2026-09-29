@@ -1,8 +1,10 @@
 # Icicle Creek — Watershed Map MVP
 
-Map-first slice of the Icicle Strategy decision support path: watershed connectivity on the landing view, named scenarios (pre-run hydrology + date range + operating regime), Historical Channel comparison against 60 / 100 cfs guiding principles, and a summer release-volume statistic for two regimes that share the same hydrology and season window.
+Full-screen interactive map of the Icicle Creek watershed. MapLibre renders the supplied `creeks_lakes.geojson` data from `src/data/creeks-lakes.json` directly above a muted basemap. Named creek lines and lake polygons use a consistent, restrained palette.
 
-This is **not** the contracted Phase 1 season chart (`icicle-dashboard`). It demonstrates the next product slice described in the project plan (map front door, scenario metadata, routing-only edits).
+The map includes Data and Scenario modes. In Data mode, selecting a feature opens a compact, translucent bottom panel. Recent Icicle Creek flow uses the existing USGS endpoint; when live data is unavailable, the endpoint returns clearly labeled illustrative fixture values. The lake plots use synthetic monthly demo values in feet from 2020 through 2025: checked USGS NWIS lake records did not provide daily gage-height series for the mapped lakes. These synthetic values use an arbitrary baseline and are not observed elevations.
+
+Scenario mode provides a 0–50 cfs slider for each mapped lake and a combined slider-setting summary. These initial demo controls are not verified operating limits, do not change the data plots, and do not calculate downstream flows or lake levels. Treat them as a UI prototype, not an operational recommendation or forecast.
 
 ## Run locally
 
@@ -23,10 +25,9 @@ Open [http://localhost:4317](http://localhost:4317).
 
 ## Mocked / illustrative data
 
-- **Hydrology library** — synthetic daily inflow and base channel flows keyed by `dhsvm-cal-2015-2024-avg` (not a live DHSVM run).
-- **Scenarios** — two pre-loaded regimes: wilderness storage hold vs release for downstream need (Jul–Oct 2024 window).
-- **Routing** — client-side recalculation when you copy/edit a regime; Structure 2 loss is an explicit uncertainty band.
-- **USGS 12458000** — `/api/usgs/12458000` tries the USGS Water Services API and falls back to a **labeled fixture** when live data is unavailable.
+- **Feature labels** — creek and lake asset names are stored in each bundled GeoJSON feature's `properties.name` field.
+- **Lake water levels** — monthly plotted values are deterministic synthetic demo data and are explicitly labeled as unmeasured.
+- **Map tiles** — the basemap uses open CARTO raster tiles with OpenStreetMap attribution.
 
 ## Out of scope (this repo)
 

@@ -1,180 +1,198 @@
 "use client";
 
-import { WATERSHED_FEATURES, type WatershedFeature } from "@/data/watershed";
 import {
-  addRemoteBasemapIfAvailable,
-  createWatershedStyle,
-} from "@/lib/watershed-map-style";
+  WATERSHED_FEATURES,
+  WATERSHED_GEOJSON,
+  type WatershedMapFeature,
+} from "@/data/creeks";
+import { createWatershedStyle } from "@/lib/watershed-map-style";
 import { useEffect, useRef } from "react";
 
-const kindColor: Record<WatershedFeature["kind"], string> = {
-  lake: "#2563eb",
-  tributary: "#0d9488",
-  diversion: "#b45309",
-  gage: "#ca8a04",
-  channel: "#7c3aed",
-  confluence: "#64748b",
-};
-
 type Props = {
-  selectedId: string | null;
-  onSelect: (feature: WatershedFeature) => void;
+  selectedFeatureId: string | null;
+  showFeatures: boolean;
+  onSelectFeature: (feature: WatershedMapFeature) => void;
   onReady: () => void;
   onFailed: (message: string) => void;
 };
 
 type MapInstance = import("maplibre-gl").Map;
 
+function getFeatureCoordinates(
+  feature: (typeof WATERSHED_GEOJSON.features)[number],
+) {
+  return feature.geometry.type === "LineString"
+    ? feature.geometry.coordinates
+    : feature.geometry.coordinates.flat();
+}
+
+function getWatershedBounds(maplibregl: typeof import("maplibre-gl")) {
+  const bounds = new maplibregl.LngLatBounds();
+  for (const feature of WATERSHED_GEOJSON.features) {
+    for (const [longitude, latitude] of getFeatureCoordinates(feature)) {
+      bounds.extend([longitude, latitude]);
+    }
+  }
+  return bounds;
+}
+
 export function WatershedMapNative({
-  selectedId,
-  onSelect,
+  selectedFeatureId,
+  showFeatures,
+  onSelectFeature,
   onReady,
   onFailed,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
-  const onSelectRef = useRef(onSelect);
+  const selectedFeatureIdRef = useRef(selectedFeatureId);
+  const showFeaturesRef = useRef(showFeatures);
+  const onSelectFeatureRef = useRef(onSelectFeature);
   const onReadyRef = useRef(onReady);
   const onFailedRef = useRef(onFailed);
-  onSelectRef.current = onSelect;
+
+  selectedFeatureIdRef.current = selectedFeatureId;
+  showFeaturesRef.current = showFeatures;
+  onSelectFeatureRef.current = onSelectFeature;
   onReadyRef.current = onReady;
   onFailedRef.current = onFailed;
-  const readyRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
     let cancelled = false;
-    let map: MapInstance;
-
-    const bindInteractions = () => {
-      if (!map || cancelled) return;
-      map.on("click", "watershed-points", (e) => {
-        const id = e.features?.[0]?.properties?.id as string | undefined;
-        if (!id) return;
-        const feature = WATERSHED_FEATURES.find((f) => f.id === id);
-        if (feature) onSelectRef.current(feature);
-      });
-      map.on("mouseenter", "watershed-points", () => {
-        map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mouseleave", "watershed-points", () => {
-        map.getCanvas().style.cursor = "";
-      });
-    };
-
-    const finishReady = () => {
-      if (cancelled || readyRef.current) return;
-      const lngs = WATERSHED_FEATURES.map((f) => f.coordinates[0]);
-      const lats = WATERSHED_FEATURES.map((f) => f.coordinates[1]);
-      map.fitBounds(
-        [
-          [Math.min(...lngs) - 0.04, Math.min(...lats) - 0.03],
-          [Math.max(...lngs) + 0.04, Math.max(...lats) + 0.03],
-        ],
-        { padding: 48, duration: 0 },
-      );
-      if (!map.getCanvas()) return;
-      containerRef.current?.setAttribute("data-vectors-painted", "true");
-      readyRef.current = true;
-      map.triggerRepaint();
-      onReadyRef.current();
-    };
+    let mapLoaded = false;
+    let loadTimeout: number | undefined;
 
     import("maplibre-gl")
       .then((maplibregl) => {
         if (cancelled || !containerRef.current) return;
-        map = new maplibregl.Map({
+
+        maplibregl.setWorkerUrl(
+          new URL("maplibre-gl-worker.mjs", document.baseURI).toString(),
+        );
+        const map = new maplibregl.Map({
           container: containerRef.current,
           style: createWatershedStyle(),
-          center: [-120.74, 47.56],
-          zoom: 9,
           attributionControl: { compact: true },
+          maxZoom: 19,
         });
         mapRef.current = map;
-
-        let interactionsBound = false;
-        const attemptReady = () => {
-          if (cancelled || readyRef.current) return;
-          if (!interactionsBound) {
-            bindInteractions();
-            interactionsBound = true;
+        loadTimeout = window.setTimeout(() => {
+          if (!cancelled && !mapLoaded) {
+            onFailedRef.current(
+              "The map did not finish loading. Check that the basemap and map worker are reachable.",
+            );
           }
-          addRemoteBasemapIfAvailable(map);
-          finishReady();
+        }, 15000);
+
+        map.on("load", () => {
+          if (cancelled) return;
+          mapLoaded = true;
+          window.clearTimeout(loadTimeout);
+          map.fitBounds(getWatershedBounds(maplibregl), {
+            padding: 40,
+            maxZoom: 13,
+            duration: 0,
+          });
+          for (const feature of WATERSHED_FEATURES) {
+            map.setFeatureState(
+              { source: "watershed-features", id: feature.id },
+              { selected: feature.id === selectedFeatureIdRef.current },
+            );
+          }
+          setFeatureVisibility(map, showFeaturesRef.current);
+          onReadyRef.current();
+        });
+        map.addControl(
+          new maplibregl.NavigationControl({
+            showCompass: true,
+            showZoom: true,
+          }),
+          "top-right",
+        );
+
+        const selectFeature = (event: import("maplibre-gl").MapLayerMouseEvent) => {
+          const id = event.features?.[0]?.properties?.id;
+          const feature = WATERSHED_FEATURES.find(
+            (candidate) => candidate.id === id,
+          );
+          if (feature) onSelectFeatureRef.current(feature);
         };
-
-        map.on("load", attemptReady);
-        map.on("idle", attemptReady);
-        window.setTimeout(attemptReady, 2000);
-        window.setTimeout(attemptReady, 5000);
-
-        map.on("error", () => {
-          /* Ignore raster tile errors; offline vectors remain in the base style. */
+        map.on("click", "creek-hit-area", selectFeature);
+        map.on("click", "lake-polygons", selectFeature);
+        map.on("mouseenter", "creek-hit-area", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "creek-hit-area", () => {
+          map.getCanvas().style.cursor = "";
+        });
+        map.on("mouseenter", "lake-polygons", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "lake-polygons", () => {
+          map.getCanvas().style.cursor = "";
+        });
+        map.on("error", (event) => {
+          if (!cancelled && event.error) {
+            console.error("MapLibre map error:", event.error);
+            if (!mapLoaded && /worker/i.test(event.error.message)) {
+              onFailedRef.current(event.error.message);
+            }
+          }
         });
       })
-      .catch((err) => onFailedRef.current(String(err)));
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          onFailedRef.current(
+            error instanceof Error ? error.message : String(error),
+          );
+        }
+      });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(loadTimeout);
       mapRef.current?.remove();
       mapRef.current = null;
-      readyRef.current = false;
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.getSource("watershed-points")) return;
-    const source = map.getSource("watershed-points") as import("maplibre-gl").GeoJSONSource;
-    source.setData({
-      type: "FeatureCollection",
-      features: WATERSHED_FEATURES.map((f) => ({
-        type: "Feature",
-        properties: {
-          id: f.id,
-          name: f.name,
-          kind: f.kind,
-          color: kindColor[f.kind],
-        },
-        geometry: { type: "Point", coordinates: f.coordinates },
-      })),
-    });
-    map.setPaintProperty("watershed-points", "circle-radius", [
-      "case",
-      ["==", ["get", "id"], selectedId ?? ""],
-      13,
-      ["match", ["get", "kind"], "channel", 11, 9],
-    ]);
-  }, [selectedId]);
+    if (!map?.isStyleLoaded()) return;
+    setFeatureVisibility(map, showFeatures);
+  }, [showFeatures]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded() || !map.getSource("watershed-features")) return;
+
+    for (const feature of WATERSHED_FEATURES) {
+      map.setFeatureState(
+        { source: "watershed-features", id: feature.id },
+        { selected: feature.id === selectedFeatureId },
+      );
+    }
+  }, [selectedFeatureId]);
 
   return (
-    <>
-      <div
-        ref={containerRef}
-        className="absolute inset-0 h-full w-full"
-        data-vectors-painted="false"
-      />
-      <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 max-w-[90%] -translate-x-1/2 rounded-xl bg-white/92 px-4 py-2 text-center shadow-md">
-        <p className="text-[11px] font-semibold text-slate-800">Watershed legend</p>
-        <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-slate-600">
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-blue-600" /> Lakes
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-teal-600" /> Tributaries
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-amber-700" /> Diversions
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-yellow-600" /> Gages
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-violet-600" /> Hist. Channel
-          </span>
-        </div>
-      </div>
-    </>
+    <div
+      ref={containerRef}
+      className="absolute inset-0 h-full w-full"
+      data-testid="watershed-map-canvas"
+    />
   );
+}
+
+function setFeatureVisibility(map: MapInstance, visible: boolean) {
+  const visibility = visible ? "visible" : "none";
+  for (const layerId of [
+    "lake-polygons",
+    "creek-casing",
+    "creek-lines",
+    "creek-hit-area",
+  ]) {
+    if (map.getLayer(layerId)) map.setLayoutProperty(layerId, "visibility", visibility);
+  }
 }
