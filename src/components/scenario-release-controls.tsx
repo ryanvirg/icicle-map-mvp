@@ -6,6 +6,7 @@ import type {
   HydrologicCondition,
 } from "@/lib/forecast/types";
 import { Button } from "@/components/ui/button";
+import { ForecastHydrographs } from "@/components/forecast-hydrographs";
 
 const HYDROLOGIC_CONDITIONS: {
   id: HydrologicCondition;
@@ -159,7 +160,7 @@ export function ScenarioReleaseControls({
         </p>
         {runState === "complete" && runResult && (
           <p role="status" className="mt-2 rounded-md bg-emerald-50 px-2 py-1.5 text-[10px] leading-snug text-emerald-900">
-            Template input accepted: {runResult.condition} / sample P{runResult.reference.selectedSamplePercentile} = {runResult.reference.selectedSampleFlowCfs.toFixed(1)} cfs from gage {runResult.reference.site} fixture ({runResult.reference.dataAsOf}); {runResult.releaseSettingCount} release settings total {runResult.totalReleaseCfs} cfs. No forecast hydrograph was calculated.
+            Demo hydrographs ready: {runResult.condition} sample P{runResult.reference.selectedSamplePercentile} ({runResult.reference.selectedSampleFlowCfs.toFixed(1)} cfs reference) with {runResult.totalReleaseCfs} cfs of combined lake release settings.
           </p>
         )}
         {runState === "error" && runError && (
@@ -168,6 +169,9 @@ export function ScenarioReleaseControls({
           </p>
         )}
       </div>
+      {runState === "complete" && runResult && (
+        <ForecastHydrographs result={runResult} />
+      )}
     </section>
   );
 }

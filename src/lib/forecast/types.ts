@@ -10,6 +10,19 @@ export type ForecastRunInput = {
   releases: ForecastReleaseSetting[];
 };
 
+export type ForecastHydrographPoint = {
+  step: string;
+  baselineCfs: number;
+  scenarioCfs: number;
+};
+
+export type ForecastGaugeHydrograph = {
+  gaugeId: string;
+  name: string;
+  station: string;
+  hydrograph: ForecastHydrographPoint[];
+};
+
 export type ForecastRunResult = {
   runId: string;
   engine: string;
@@ -25,6 +38,7 @@ export type ForecastRunResult = {
     selectedSamplePercentile: 25 | 50 | 75;
     selectedSampleFlowCfs: number;
   };
+  hydrographs: ForecastGaugeHydrograph[];
   status: "complete";
   note: string;
 };
