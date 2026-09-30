@@ -2,9 +2,9 @@
 
 Full-screen interactive map of the Icicle Creek watershed. MapLibre renders the supplied `creeks_lakes.geojson` data from `src/data/creeks-lakes.json` directly above a muted basemap. Named creek lines and lake polygons use a consistent, restrained palette.
 
-The map includes Data and Scenario modes. In Data mode, selecting a feature opens a compact, translucent bottom panel. Recent Icicle Creek flow uses the existing USGS endpoint; when live data is unavailable, the endpoint returns clearly labeled illustrative fixture values. The lake plots use synthetic monthly demo values in feet from 2020 through 2025: checked USGS NWIS lake records did not provide daily gage-height series for the mapped lakes. These synthetic values use an arbitrary baseline and are not observed elevations.
+The map includes Data and Forecast modes. In Data mode, selecting a feature opens a compact, translucent bottom panel. Recent Icicle Creek flow uses the existing USGS endpoint; when live data is unavailable, the endpoint returns clearly labeled illustrative fixture values. The lake plots use synthetic monthly demo values in feet from 2020 through 2025: checked USGS NWIS lake records did not provide daily gage-height series for the mapped lakes. These synthetic values use an arbitrary baseline and are not observed elevations.
 
-Scenario mode provides a 0–50 cfs slider for each mapped lake and a combined slider-setting summary. These initial demo controls are not verified operating limits, do not change the data plots, and do not calculate downstream flows or lake levels. Treat them as a UI prototype, not an operational recommendation or forecast.
+Forecast mode provides a 0–50 cfs slider for each mapped lake and a combined slider-setting summary. The controls appear beneath the mode toggle and retain their values when switching modes. The center summary is unchanged. These initial demo controls are not verified operating limits, do not change the data plots, and do not calculate downstream flows or lake levels. Treat them as a UI prototype, not an operational recommendation or forecast.
 
 ## Run locally
 
@@ -38,3 +38,14 @@ Raster browsers, fish/recreation heat maps, optimizers, seasonal forecasts, auth
 - [Icicle Strategy](https://iciclestrategy.com/)
 - [Phase 1 season app (WIP)](https://icicle-v030.azurewebsites.net/)
 - [Okanagan FWMT scenario manager](https://www.ok.fwmt.net/Scenario/Manager)
+
+## Data-mode area overview
+
+Data mode shows an accordion beneath the mode toggle for Streams, Land, Soil, Terrain, Climate, and Point sources. Area values summarize the full Icicle Creek watershed from documented public datasets; see the data notes below. Streams lists bundled creek features, and selecting one opens its existing data panel. Point sources remain unassessed. Forecast remains an illustrative release-control prototype, not a forecasting model.
+
+
+## Area overview data
+
+The area panel summarizes the six EPA HUC12 subwatersheds in the Icicle Creek HUC10 watershed (555.04 km²). EPA Watershed Index Online metrics are area-weighted across those six units; source rows, boundary geometry, and indicator definitions are bundled in `src/data/sources/icicle-area-source.json`. Land cover is NLCD 2019. Hydrologic soil groups use USDA NRCS gSSURGO (July 2020); the remainder is shown as unclassified rather than being assigned to a group. Terrain metrics are from the NHDPlus2 / USGS National Elevation Dataset snapshot; slope is in degrees.
+
+Monthly climate normals are calculated from daily ERA5 1991–2020 temperature and precipitation, summarized by year and month, then weighted by the area where each roughly 25 km climate grid cell intersects the HUC10 boundary. These reanalysis estimates are not local station measurements and the grid cannot resolve mountain microclimates. Provenance and input cell weights are in `src/data/sources/icicle-area-provenance.json`. To refresh data, create a Python environment, install `scripts/area-data-requirements.txt`, then run `python scripts/build-area-data.py`.

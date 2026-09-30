@@ -4,8 +4,58 @@ type WatershedProperties = Record<string, unknown> & {
   name?: string;
 };
 
-export const WATERSHED_GEOJSON = watershedGeoJson as GeoJSON.FeatureCollection<
-  GeoJSON.LineString | GeoJSON.Polygon,
+type WatershedGeometry = GeoJSON.LineString | GeoJSON.Polygon | GeoJSON.MultiPolygon;
+
+const sourceLakeFeatures = watershedGeoJson.features.filter(
+  (feature) => feature.geometry.type === "Polygon",
+);
+const expectedSourceLakeNames = [
+  "Klonaqua Lakes", "Square Lake", "Eightmile Lake", "Klonaqua Lakes",
+  "Lower Snow Lake", "Colchuck Lake", "Upper Snow Lake",
+];
+if (JSON.stringify(sourceLakeFeatures.map((feature) => feature.properties.name)) !== JSON.stringify(expectedSourceLakeNames)) {
+  throw new Error("The bundled lake features changed order; review the lake name and merge mapping in creeks.ts.");
+}
+
+function mergeLakeFeatures(
+  first: (typeof sourceLakeFeatures)[number],
+  second: (typeof sourceLakeFeatures)[number],
+  name: string,
+) {
+  const coordinates = (feature: (typeof sourceLakeFeatures)[number]) =>
+    feature.geometry.coordinates;
+  return {
+    ...first,
+    properties: { ...first.properties, name },
+    geometry: {
+      type: "MultiPolygon" as const,
+      coordinates: [coordinates(first), coordinates(second)],
+    },
+  };
+}
+
+const correctedLakeFeatures = [
+  mergeLakeFeatures(sourceLakeFeatures[0], sourceLakeFeatures[1], "Klonaqua Lakes"),
+  { ...sourceLakeFeatures[2], properties: { ...sourceLakeFeatures[2].properties, name: "Square Lake" } },
+  { ...sourceLakeFeatures[3], properties: { ...sourceLakeFeatures[3].properties, name: "Eightmile Lake" } },
+  mergeLakeFeatures(sourceLakeFeatures[4], sourceLakeFeatures[5], "Snow Lakes"),
+  { ...sourceLakeFeatures[6], properties: { ...sourceLakeFeatures[6].properties, name: "Colchuck Lake" } },
+];
+
+let sourceLakeIndex = 0;
+let correctedLakeIndex = 0;
+const correctedFeatures = watershedGeoJson.features.flatMap((feature) => {
+  if (feature.geometry.type !== "Polygon") return [feature];
+  const currentIndex = sourceLakeIndex++;
+  if (currentIndex === 1 || currentIndex === 5) return [];
+  return [correctedLakeFeatures[correctedLakeIndex++]];
+});
+
+export const WATERSHED_GEOJSON = {
+  ...watershedGeoJson,
+  features: correctedFeatures,
+} as GeoJSON.FeatureCollection<
+  WatershedGeometry,
   WatershedProperties
 >;
 
@@ -73,22 +123,22 @@ export const WATERSHED_FEATURES: WatershedMapFeature[] =
       };
     }
 
-    const rings = feature.geometry.coordinates;
+    const polygons = feature.geometry.type === "Polygon"
+      ? [feature.geometry.coordinates]
+      : feature.geometry.coordinates;
     const areaKm2 = Math.max(
       0,
-      rings.reduce(
-        (area, ring, ringIndex) =>
-          area +
-          (ringIndex === 0 ? 1 : -1) * polygonRingAreaKm2(ring),
+      polygons.reduce((total, rings) => total + rings.reduce(
+        (area, ring, ringIndex) => area + (ringIndex === 0 ? 1 : -1) * polygonRingAreaKm2(ring),
         0,
-      ),
+      ), 0),
     );
 
     return {
       id,
       name,
       kind: "lake",
-      vertexCount: rings.reduce((total, ring) => total + ring.length, 0),
+        vertexCount: polygons.reduce((total, rings) => total + rings.reduce((ringTotal, ring) => ringTotal + ring.length, 0), 0),
       areaKm2,
     };
   });

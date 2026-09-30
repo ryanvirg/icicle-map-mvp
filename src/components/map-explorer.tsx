@@ -1,5 +1,6 @@
 "use client";
 
+import { AreaDataPanel } from "@/components/area-data-panel";
 import { AssetDataPanel } from "@/components/asset-data-panel";
 import { ScenarioReleaseControls } from "@/components/scenario-release-controls";
 import { WatershedMap } from "@/components/watershed-map";
@@ -8,16 +9,16 @@ import {
   LAKE_FEATURES,
   type WatershedMapFeature,
 } from "@/data/creeks";
-import { Waves } from "lucide-react";
 import { useState } from "react";
+import { MAP_OVERLAYS, type MapOverlayId } from "@/data/map-overlays";
 
-type DisplayMode = "data" | "scenario";
+type DisplayMode = "data" | "forecast";
 
 function MapExplorerInner() {
   const [selectedFeature, setSelectedFeature] =
     useState<WatershedMapFeature | null>(null);
-  const [showFeatures, setShowFeatures] = useState(true);
   const [mode, setMode] = useState<DisplayMode>("data");
+  const [activeOverlay, setActiveOverlay] = useState<MapOverlayId | null>(null);
   const [releaseRates, setReleaseRates] = useState<Record<string, number>>(
     () => Object.fromEntries(LAKE_FEATURES.map((lake) => [lake.id, 0])),
   );
@@ -38,94 +39,113 @@ function MapExplorerInner() {
             : "bottom-[88px]"
         }`}
         selectedFeatureId={selectedFeature?.id ?? null}
-        showFeatures={showFeatures}
+        dataOverlay={mode === "data" && activeOverlay ? MAP_OVERLAYS[activeOverlay] : null}
         onSelectFeature={setSelectedFeature}
       />
 
-      <section className="absolute left-4 top-4 z-20 rounded-xl border border-slate-200/90 bg-white/95 p-3 shadow-md backdrop-blur-sm">
-        <h1 className="text-sm font-semibold text-slate-900">
-          Icicle Creek Explorer
-        </h1>
-        <p className="mt-0.5 text-xs text-slate-500">
-          {mode === "data"
-            ? "Select a creek or lake to explore"
-            : "Adjust illustrative lake release settings"}
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className="h-[3px] w-4 rounded-full bg-[#176b7c]"
-              aria-hidden
-            />
-            Creeks <span className="text-slate-400">{CREEK_REACHES.length}</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className="h-2.5 w-3 rounded-sm border border-[#428a9b] bg-[#a8d6df]"
-              aria-hidden
-            />
-            Lakes <span className="text-slate-400">{LAKE_FEATURES.length}</span>
-          </span>
+      <section
+        aria-label="Watershed explorer controls"
+        className={`absolute left-4 top-4 z-20 flex w-[min(22rem,calc(100%-4.5rem))] flex-col overflow-hidden rounded-xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-sm ${
+          mode === "data"
+            ? "max-h-[calc(100dvh-clamp(180px,25dvh,220px)-56px)]"
+            : "max-h-[calc(100dvh-120px)]"
+        }`}
+      >
+        <div className="shrink-0 p-3">
+          <h1 className="text-sm font-semibold text-slate-900">
+            Icicle Creek Explorer
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {mode === "data"
+              ? "Select a creek or lake to explore"
+              : "Adjust illustrative lake release settings"}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="h-[3px] w-4 rounded-full bg-[#176b7c]"
+                aria-hidden
+              />
+              Creeks <span className="text-slate-400">{CREEK_REACHES.length}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-3 rounded-sm border border-[#428a9b] bg-[#a8d6df]"
+                aria-hidden
+              />
+              Lakes <span className="text-slate-400">{LAKE_FEATURES.length}</span>
+            </span>
+          </div>
+          <div
+            className="mt-3 inline-flex rounded-lg bg-slate-100 p-1"
+            role="group"
+            aria-label="Display mode"
+          >
+            {(["data", "forecast"] as const).map((option) => {
+              const selected = mode === option;
+              const label = option === "data" ? "Data" : "Forecast";
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    setMode(option);
+                    if (option === "forecast") setActiveOverlay(null);
+                  }}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    selected
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div
-          className="mt-3 inline-flex rounded-lg bg-slate-100 p-1"
-          role="group"
-          aria-label="Display mode"
-        >
-          {(["data", "scenario"] as const).map((option) => {
-            const selected = mode === option;
-            const label = option === "data" ? "Data" : "Scenario";
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => setMode(option)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  selected
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+        <div className="min-h-0 overflow-y-auto overscroll-contain border-t border-slate-200">
+          {mode === "data" ? (
+            <AreaDataPanel onSelectFeature={setSelectedFeature} activeOverlay={activeOverlay} onSelectOverlay={setActiveOverlay} />
+          ) : (
+            <ScenarioReleaseControls
+              lakes={LAKE_FEATURES}
+              releaseRates={releaseRates}
+              onReleaseRateChange={(lakeId, value) =>
+                setReleaseRates((current) => ({ ...current, [lakeId]: value }))
+              }
+              onReset={() =>
+                setReleaseRates(
+                  Object.fromEntries(LAKE_FEATURES.map((lake) => [lake.id, 0])),
+                )
+              }
+            />
+          )}
         </div>
-        <button
-          type="button"
-          aria-pressed={showFeatures}
-          onClick={() => setShowFeatures((visible) => !visible)}
-          className={`mt-2 flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium ${
-            showFeatures
-              ? "border-slate-200 bg-slate-50 text-slate-800"
-              : "border-slate-200 bg-white text-slate-500"
-          }`}
-        >
-          <Waves size={14} aria-hidden />
-          {showFeatures ? "Hide" : "Show"} map features
-        </button>
       </section>
 
       {mode === "data" ? (
-        <AssetDataPanel
-          feature={selectedFeature}
-          onClose={() => setSelectedFeature(null)}
-        />
+        <>
+          <AssetDataPanel
+            feature={selectedFeature}
+            onClose={() => setSelectedFeature(null)}
+          />
+          {activeOverlay && (() => {
+            const overlay = MAP_OVERLAYS[activeOverlay];
+            return <section aria-label="Map legend" className="pointer-events-none absolute bottom-[calc(clamp(180px,25dvh,220px)+36px)] right-4 z-20 w-52 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-md backdrop-blur-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div><h2 className="text-xs font-semibold text-slate-800">{overlay.label}</h2><p className="mt-0.5 text-[10px] text-slate-500">{overlay.source === "climate" ? "ERA5 grid · 0.25° cells" : "EPA WSIO · HUC12 subwatersheds"}</p></div>
+                <button type="button" className="pointer-events-auto -mt-1 -mr-1 rounded px-1 text-sm text-slate-500 hover:bg-slate-100" aria-label="Clear map overlay" onClick={() => setActiveOverlay(null)}>×</button>
+              </div>
+              <div className="mt-2 h-2 rounded" style={{ background: `linear-gradient(90deg, ${overlay.colors.join(", ")})` }} />
+              <div className="mt-1 flex justify-between text-[9px] tabular-nums text-slate-600"><span>{overlay.min} {overlay.unit}</span><span>{overlay.max} {overlay.unit}</span></div>
+              <p className="mt-2 text-[9px] leading-snug text-slate-500">{overlay.source === "climate" ? "Historical grid-cell normals clipped to the watershed." : "Area-level source estimates; polygons show subwatershed summaries."}</p>
+            </section>;
+          })()}
+        </>
       ) : (
         <>
-          <ScenarioReleaseControls
-            lakes={LAKE_FEATURES}
-            releaseRates={releaseRates}
-            onReleaseRateChange={(lakeId, value) =>
-              setReleaseRates((current) => ({ ...current, [lakeId]: value }))
-            }
-            onReset={() =>
-              setReleaseRates(
-                Object.fromEntries(LAKE_FEATURES.map((lake) => [lake.id, 0])),
-              )
-            }
-          />
           <section
             aria-label="Scenario release summary"
             aria-live="polite"

@@ -1,4 +1,5 @@
 import { WATERSHED_FEATURES, WATERSHED_GEOJSON } from "@/data/creeks";
+import { CLIMATE_OVERLAY_GEOJSON, HUC12_OVERLAY_GEOJSON } from "@/data/map-overlays";
 import type { StyleSpecification } from "maplibre-gl";
 
 /** Muted public basemap with consistent creek and lake symbology. */
@@ -32,6 +33,9 @@ export function createWatershedStyle(): StyleSpecification {
           })),
         },
       },
+      "huc12-overlay": { type: "geojson", data: HUC12_OVERLAY_GEOJSON },
+      "climate-overlay": { type: "geojson", data: CLIMATE_OVERLAY_GEOJSON },
+      gauges: { type: "geojson", data: "/gauges.geojson" },
     },
     layers: [
       {
@@ -40,6 +44,28 @@ export function createWatershedStyle(): StyleSpecification {
         source: "basemap",
         minzoom: 0,
         maxzoom: 19,
+      },
+      {
+        id: "huc12-data-overlay",
+        type: "fill",
+        source: "huc12-overlay",
+        layout: { visibility: "none" },
+        paint: {
+          "fill-color": "#4d8d78",
+          "fill-opacity": 0.66,
+          "fill-outline-color": "#ffffff",
+        },
+      },
+      {
+        id: "climate-data-overlay",
+        type: "fill",
+        source: "climate-overlay",
+        layout: { visibility: "none" },
+        paint: {
+          "fill-color": "#4d8d78",
+          "fill-opacity": 0.72,
+          "fill-outline-color": "#ffffff",
+        },
       },
       {
         id: "lake-polygons",
@@ -112,6 +138,41 @@ export function createWatershedStyle(): StyleSpecification {
           "line-color": "#176b7c",
           "line-width": 16,
           "line-opacity": 0,
+        },
+      },
+      {
+        id: "gauge-points",
+        type: "circle",
+        source: "gauges",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": [
+            "match", ["get", "agency"],
+            "USGS", "#225f86",
+            "Ecology", "#267c5d",
+            "USFWS", "#b56622",
+            "#475569",
+          ],
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+        },
+      },
+      {
+        id: "gauge-labels",
+        type: "symbol",
+        source: "gauges",
+        layout: {
+          "text-field": ["get", "label"],
+          "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+          "text-size": 11,
+          "text-offset": [0, 1.05],
+          "text-anchor": "top",
+          "text-allow-overlap": false,
+        },
+        paint: {
+          "text-color": "#1e293b",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1.5,
         },
       },
     ],

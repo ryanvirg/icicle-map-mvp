@@ -10,10 +10,10 @@ import {
 describe("creeks and lakes GeoJSON", () => {
   it("loads all supplied lines and polygons with map details", () => {
     assert.equal(WATERSHED_GEOJSON.type, "FeatureCollection");
-    assert.equal(WATERSHED_GEOJSON.features.length, 15);
+    assert.equal(WATERSHED_GEOJSON.features.length, 13);
     assert.equal(CREEK_REACHES.length, 8);
-    assert.equal(LAKE_FEATURES.length, 7);
-    assert.equal(WATERSHED_FEATURES.length, 15);
+    assert.equal(LAKE_FEATURES.length, 5);
+    assert.equal(WATERSHED_FEATURES.length, 13);
     assert.equal(
       WATERSHED_GEOJSON.features.filter(
         (feature) => feature.geometry.type === "LineString",
@@ -22,9 +22,9 @@ describe("creeks and lakes GeoJSON", () => {
     );
     assert.equal(
       WATERSHED_GEOJSON.features.filter(
-        (feature) => feature.geometry.type === "Polygon",
+        (feature) => feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon",
       ).length,
-      7,
+      5,
     );
     assert.ok(
       WATERSHED_GEOJSON.features.every(
@@ -51,13 +51,14 @@ describe("creeks and lakes GeoJSON", () => {
       LAKE_FEATURES.map((feature) => feature.name),
       [
         "Klonaqua Lakes",
-        "Klonaqua Lakes",
         "Square Lake",
         "Eightmile Lake",
-        "Lower Snow Lake",
-        "Upper Snow Lake",
+        "Snow Lakes",
         "Colchuck Lake",
       ],
     );
+    assert.equal(LAKE_FEATURES.filter((feature) => feature.name === "Klonaqua Lakes").length, 1);
+    assert.equal(LAKE_FEATURES.filter((feature) => feature.name === "Snow Lakes").length, 1);
+    assert.ok(LAKE_FEATURES.filter((feature) => feature.name === "Klonaqua Lakes" || feature.name === "Snow Lakes").every((feature) => feature.vertexCount > 0 && (feature.areaKm2 ?? 0) > 0));
   });
 });

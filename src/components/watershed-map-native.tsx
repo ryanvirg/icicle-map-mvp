@@ -6,11 +6,12 @@ import {
   type WatershedMapFeature,
 } from "@/data/creeks";
 import { createWatershedStyle } from "@/lib/watershed-map-style";
+import type { MapOverlay } from "@/data/map-overlays";
 import { useEffect, useRef } from "react";
 
 type Props = {
   selectedFeatureId: string | null;
-  showFeatures: boolean;
+  dataOverlay: MapOverlay | null;
   onSelectFeature: (feature: WatershedMapFeature) => void;
   onReady: () => void;
   onFailed: (message: string) => void;
@@ -18,12 +19,28 @@ type Props = {
 
 type MapInstance = import("maplibre-gl").Map;
 
+function applyDataOverlay(map: MapInstance, dataOverlay: MapOverlay | null) {
+  const hucLayer = "huc12-data-overlay";
+  const climateLayer = "climate-data-overlay";
+  const activeLayer = dataOverlay?.source === "climate" ? climateLayer : hucLayer;
+  for (const layer of [hucLayer, climateLayer]) {
+    if (map.getLayer(layer)) map.setLayoutProperty(layer, "visibility", layer === activeLayer && dataOverlay ? "visible" : "none");
+  }
+  if (!dataOverlay || !map.getLayer(activeLayer)) return;
+  map.setPaintProperty(activeLayer, "fill-color", [
+    "interpolate", ["linear"], ["to-number", ["get", dataOverlay.property], dataOverlay.min],
+    dataOverlay.min, dataOverlay.colors[0],
+    (dataOverlay.min + dataOverlay.max) / 2, dataOverlay.colors[1],
+    dataOverlay.max, dataOverlay.colors[2],
+  ]);
+}
+
 function getFeatureCoordinates(
   feature: (typeof WATERSHED_GEOJSON.features)[number],
 ) {
-  return feature.geometry.type === "LineString"
-    ? feature.geometry.coordinates
-    : feature.geometry.coordinates.flat();
+  if (feature.geometry.type === "LineString") return feature.geometry.coordinates;
+  if (feature.geometry.type === "Polygon") return feature.geometry.coordinates.flat();
+  return feature.geometry.coordinates.flat(2);
 }
 
 function getWatershedBounds(maplibregl: typeof import("maplibre-gl")) {
@@ -38,7 +55,7 @@ function getWatershedBounds(maplibregl: typeof import("maplibre-gl")) {
 
 export function WatershedMapNative({
   selectedFeatureId,
-  showFeatures,
+  dataOverlay,
   onSelectFeature,
   onReady,
   onFailed,
@@ -46,16 +63,18 @@ export function WatershedMapNative({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance | null>(null);
   const selectedFeatureIdRef = useRef(selectedFeatureId);
-  const showFeaturesRef = useRef(showFeatures);
+  const dataOverlayRef = useRef(dataOverlay);
   const onSelectFeatureRef = useRef(onSelectFeature);
   const onReadyRef = useRef(onReady);
   const onFailedRef = useRef(onFailed);
 
-  selectedFeatureIdRef.current = selectedFeatureId;
-  showFeaturesRef.current = showFeatures;
-  onSelectFeatureRef.current = onSelectFeature;
-  onReadyRef.current = onReady;
-  onFailedRef.current = onFailed;
+  useEffect(() => {
+    selectedFeatureIdRef.current = selectedFeatureId;
+    dataOverlayRef.current = dataOverlay;
+    onSelectFeatureRef.current = onSelectFeature;
+    onReadyRef.current = onReady;
+    onFailedRef.current = onFailed;
+  }, [selectedFeatureId, dataOverlay, onSelectFeature, onReady, onFailed]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -101,7 +120,7 @@ export function WatershedMapNative({
               { selected: feature.id === selectedFeatureIdRef.current },
             );
           }
-          setFeatureVisibility(map, showFeaturesRef.current);
+          applyDataOverlay(map, dataOverlayRef.current);
           onReadyRef.current();
         });
         map.addControl(
@@ -160,12 +179,6 @@ export function WatershedMapNative({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.isStyleLoaded()) return;
-    setFeatureVisibility(map, showFeatures);
-  }, [showFeatures]);
-
-  useEffect(() => {
-    const map = mapRef.current;
     if (!map?.isStyleLoaded() || !map.getSource("watershed-features")) return;
 
     for (const feature of WATERSHED_FEATURES) {
@@ -176,6 +189,12 @@ export function WatershedMapNative({
     }
   }, [selectedFeatureId]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    applyDataOverlay(map, dataOverlay);
+  }, [dataOverlay]);
+
   return (
     <div
       ref={containerRef}
@@ -183,16 +202,4 @@ export function WatershedMapNative({
       data-testid="watershed-map-canvas"
     />
   );
-}
-
-function setFeatureVisibility(map: MapInstance, visible: boolean) {
-  const visibility = visible ? "visible" : "none";
-  for (const layerId of [
-    "lake-polygons",
-    "creek-casing",
-    "creek-lines",
-    "creek-hit-area",
-  ]) {
-    if (map.getLayer(layerId)) map.setLayoutProperty(layerId, "visibility", visibility);
-  }
 }

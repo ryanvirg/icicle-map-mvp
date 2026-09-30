@@ -2,6 +2,7 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { WatershedMapFeature } from "@/data/creeks";
+import type { MapOverlay } from "@/data/map-overlays";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
@@ -15,14 +16,14 @@ const WatershedMapNative = dynamic(
 
 type Props = {
   selectedFeatureId: string | null;
-  showFeatures: boolean;
+  dataOverlay: MapOverlay | null;
   onSelectFeature: (feature: WatershedMapFeature) => void;
   className?: string;
 };
 
 export function WatershedMap({
   selectedFeatureId,
-  showFeatures,
+  dataOverlay,
   onSelectFeature,
   className,
 }: Props) {
@@ -37,7 +38,7 @@ export function WatershedMap({
       {!mapError && (
         <WatershedMapNative
           selectedFeatureId={selectedFeatureId}
-          showFeatures={showFeatures}
+          dataOverlay={dataOverlay}
           onSelectFeature={onSelectFeature}
           onReady={() => setMapReady(true)}
           onFailed={setMapError}

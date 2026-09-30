@@ -32,13 +32,23 @@ describe("interactive creek and lake map style", () => {
       style.layers.map((layer) => layer.id),
       [
         "basemap",
+        "huc12-data-overlay",
+        "climate-data-overlay",
         "lake-polygons",
         "creek-casing",
         "creek-lines",
         "creek-hit-area",
+        "gauge-points",
+        "gauge-labels",
       ],
     );
     assert.ok(style.layers.some((layer) => layer.id === "lake-polygons"));
     assert.ok(style.layers.some((layer) => layer.id === "creek-lines"));
+    const gauges = style.sources.gauges;
+    assert.equal(gauges.type, "geojson");
+    if (gauges.type !== "geojson") assert.fail("Expected a GeoJSON gauge source");
+    assert.equal(gauges.data, "/gauges.geojson");
+    assert.ok(style.layers.some((layer) => layer.id === "gauge-points"));
+    assert.ok(style.layers.some((layer) => layer.id === "gauge-labels"));
   });
 });

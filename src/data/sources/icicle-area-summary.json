@@ -1,0 +1,189 @@
+{
+  "retrievedAt": "2026-09-29T23:08:19.642452+00:00",
+  "huc10": "1702001104",
+  "areaKm2": 555.0417,
+  "subwatersheds": [
+    {
+      "id": "170200110401",
+      "name": "Upper Icicle Creek"
+    },
+    {
+      "id": "170200110402",
+      "name": "French Creek"
+    },
+    {
+      "id": "170200110403",
+      "name": "Jack Creek"
+    },
+    {
+      "id": "170200110404",
+      "name": "Middle Icicle Creek"
+    },
+    {
+      "id": "170200110405",
+      "name": "Eightmile Creek"
+    },
+    {
+      "id": "170200110406",
+      "name": "Lower Icicle Creek"
+    }
+  ],
+  "land": [
+    {
+      "label": "Forest",
+      "value": 59.90853137521019,
+      "unit": "%"
+    },
+    {
+      "label": "Shrub / scrub",
+      "value": 14.679662047013766,
+      "unit": "%"
+    },
+    {
+      "label": "Developed land",
+      "value": 0.7763239140410532,
+      "unit": "%"
+    },
+    {
+      "label": "Open water",
+      "value": 1.0830685262026258,
+      "unit": "%"
+    },
+    {
+      "label": "Grassland",
+      "value": 13.412429898510329,
+      "unit": "%"
+    },
+    {
+      "label": "Wetlands",
+      "value": 0.4640503443254804,
+      "unit": "%"
+    },
+    {
+      "label": "Barren land",
+      "value": 9.004298012203407,
+      "unit": "%"
+    },
+    {
+      "label": "Other land cover",
+      "value": 0.671635882493149,
+      "unit": "%"
+    }
+  ],
+  "soil": [
+    {
+      "label": "Group A \u00b7 high infiltration",
+      "value": 14.212455712786985,
+      "unit": "%"
+    },
+    {
+      "label": "Group B \u00b7 moderate infiltration",
+      "value": 32.49287386515284,
+      "unit": "%"
+    },
+    {
+      "label": "Group C \u00b7 slow infiltration",
+      "value": 24.218781669917774,
+      "unit": "%"
+    },
+    {
+      "label": "Group D \u00b7 very slow infiltration",
+      "value": 0.14341786211738686,
+      "unit": "%"
+    },
+    {
+      "label": "Not represented in A\u2013D",
+      "value": 28.932470890025016,
+      "unit": "%"
+    }
+  ],
+  "terrain": [
+    {
+      "label": "Minimum elevation",
+      "value": 1098.1500244,
+      "unit": "ft"
+    },
+    {
+      "label": "Maximum elevation",
+      "value": 9373.7998047,
+      "unit": "ft"
+    },
+    {
+      "label": "Mean elevation",
+      "value": 4986.706518730355,
+      "unit": "ft"
+    },
+    {
+      "label": "Average slope",
+      "value": 27.046561532926823,
+      "unit": "\u00b0"
+    }
+  ],
+  "climate": {
+    "months": [
+      {
+        "month": "Jan",
+        "temperatureF": 25.94588452823376,
+        "precipitationIn": 7.68767574247715
+      },
+      {
+        "month": "Feb",
+        "temperatureF": 28.054775079305042,
+        "precipitationIn": 5.469644553696308
+      },
+      {
+        "month": "Mar",
+        "temperatureF": 32.2241052238936,
+        "precipitationIn": 5.4647606683346766
+      },
+      {
+        "month": "Apr",
+        "temperatureF": 37.11949461282334,
+        "precipitationIn": 3.6185828086067064
+      },
+      {
+        "month": "May",
+        "temperatureF": 45.2737313574137,
+        "precipitationIn": 2.76712598190992
+      },
+      {
+        "month": "Jun",
+        "temperatureF": 51.355492188560305,
+        "precipitationIn": 2.191464036285432
+      },
+      {
+        "month": "Jul",
+        "temperatureF": 58.39817433379228,
+        "precipitationIn": 0.9372406252768264
+      },
+      {
+        "month": "Aug",
+        "temperatureF": 58.29520732674273,
+        "precipitationIn": 0.9822594514501801
+      },
+      {
+        "month": "Sep",
+        "temperatureF": 51.705428266457766,
+        "precipitationIn": 1.9810504330894185
+      },
+      {
+        "month": "Oct",
+        "temperatureF": 40.326319664066716,
+        "precipitationIn": 4.736318521228282
+      },
+      {
+        "month": "Nov",
+        "temperatureF": 30.419921433865433,
+        "precipitationIn": 7.453270209863775
+      },
+      {
+        "month": "Dec",
+        "temperatureF": 24.66648406895311,
+        "precipitationIn": 7.812412330119554
+      }
+    ],
+    "cellCount": 5,
+    "annualPrecipitationIn": 51.10180536233823,
+    "meanTemperatureF": 40.38159930340081
+  }
+}

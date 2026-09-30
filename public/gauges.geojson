@@ -1,0 +1,54 @@
+{
+  "type": "FeatureCollection",
+  "name": "Icicle Creek stream gages and control structure",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "usgs-12458000",
+      "geometry": { "type": "Point", "coordinates": [-120.7188889, 47.5411111] },
+      "properties": {
+        "name": "USGS Gage 12458000",
+        "label": "USGS 12458000",
+        "agency": "USGS",
+        "siteId": "12458000",
+        "riverMile": 5.8,
+        "locationConfidence": "High",
+        "confidenceNote": "Published station coordinates; USGS station description also identifies river mile 5.8.",
+        "locationSource": "USGS station 12458000 current conditions",
+        "sourceUrl": "https://waterdata.usgs.gov/nwis/uv?legacy=1&site_no=12458000"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ecology-45b070",
+      "geometry": { "type": "Point", "coordinates": [-120.6677778, 47.5636111] },
+      "properties": {
+        "name": "Washington Ecology Gage 45B070",
+        "label": "Ecology 45B070",
+        "agency": "Ecology",
+        "siteId": "45B070",
+        "riverMile": 2.5,
+        "locationConfidence": "High coordinates; medium river-mile reference",
+        "confidenceNote": "Ecology technical notes publish this station coordinate. River mile is reported as 2.5 in the station notes; later watershed material reports RM 2.2.",
+        "locationSource": "Washington Department of Ecology station technical notes",
+        "sourceUrl": "https://apps.ecology.wa.gov/continuousflowandwq/StationData/Prod/45B070/45B070_2014_TECH.PDF"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "fws-structure-2",
+      "geometry": { "type": "Point", "coordinates": [-120.6757779, 47.5483300] },
+      "properties": {
+        "name": "FWS Structure 2 · Leavenworth National Fish Hatchery",
+        "label": "FWS Structure 2",
+        "agency": "USFWS",
+        "siteId": "LNFH-Structure-2",
+        "riverMile": 3.8,
+        "locationConfidence": "Approximate",
+        "confidenceNote": "Approximate point interpolated along the bundled Icicle Creek line to RM 3.8 between the documented Ecology and USGS gages. Agency documents establish the structure at RM 3.8 but no surveyed latitude/longitude was found. For visualization only; verify against agency GIS or survey before analytical use.",
+        "locationSource": "USBR biological opinion (RM 3.8) and interpolation on bundled creek centerline",
+        "sourceUrl": "https://usbr.gov/pn/programs/leavenworth/swisp/biop2017.pdf"
+      }
+    }
+  ]
+}
