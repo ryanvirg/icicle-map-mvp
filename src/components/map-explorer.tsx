@@ -11,6 +11,11 @@ import {
 } from "@/data/creeks";
 import { useState } from "react";
 import { MAP_OVERLAYS, type MapOverlayId } from "@/data/map-overlays";
+import { forecastEngine } from "@/lib/forecast";
+import type {
+  ForecastRunResult,
+  HydrologicCondition,
+} from "@/lib/forecast/types";
 
 type DisplayMode = "data" | "forecast";
 
@@ -22,6 +27,13 @@ function MapExplorerInner() {
   const [releaseRates, setReleaseRates] = useState<Record<string, number>>(
     () => Object.fromEntries(LAKE_FEATURES.map((lake) => [lake.id, 0])),
   );
+  const [hydrologicCondition, setHydrologicCondition] =
+    useState<HydrologicCondition>("average");
+  const [runState, setRunState] = useState<
+    "idle" | "running" | "complete" | "error"
+  >("idle");
+  const [runResult, setRunResult] = useState<ForecastRunResult | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const combinedReleaseRate = Object.values(releaseRates).reduce(
     (total, rate) => total + rate,
     0,
@@ -29,6 +41,32 @@ function MapExplorerInner() {
   const activeLakeCount = Object.values(releaseRates).filter(
     (rate) => rate > 0,
   ).length;
+
+  function clearRunResult() {
+    setRunState("idle");
+    setRunResult(null);
+    setRunError(null);
+  }
+
+  async function handleRun() {
+    setRunState("running");
+    setRunResult(null);
+    setRunError(null);
+    try {
+      const result = await forecastEngine.run({
+        condition: hydrologicCondition,
+        releases: LAKE_FEATURES.map((lake) => ({
+          lakeId: lake.id,
+          releaseCfs: releaseRates[lake.id] ?? 0,
+        })),
+      });
+      setRunResult(result);
+      setRunState("complete");
+    } catch (error) {
+      setRunError(error instanceof Error ? error.message : "Unknown error");
+      setRunState("error");
+    }
+  }
 
   return (
     <div className="relative h-full min-h-0 w-full">
@@ -58,7 +96,7 @@ function MapExplorerInner() {
           <p className="mt-0.5 text-xs text-slate-500">
             {mode === "data"
               ? "Select a creek or lake to explore"
-              : "Adjust illustrative lake release settings"}
+              : "Choose a flow scenario and set illustrative lake releases"}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
             <span className="inline-flex items-center gap-1.5">
@@ -112,14 +150,27 @@ function MapExplorerInner() {
             <ScenarioReleaseControls
               lakes={LAKE_FEATURES}
               releaseRates={releaseRates}
+              condition={hydrologicCondition}
+              runState={runState}
+              runResult={runResult}
+              runError={runError}
+              onConditionChange={(condition) => {
+                setHydrologicCondition(condition);
+                clearRunResult();
+              }}
               onReleaseRateChange={(lakeId, value) =>
-                setReleaseRates((current) => ({ ...current, [lakeId]: value }))
+                {
+                  setReleaseRates((current) => ({ ...current, [lakeId]: value }));
+                  clearRunResult();
+                }
               }
-              onReset={() =>
+              onReset={() => {
                 setReleaseRates(
                   Object.fromEntries(LAKE_FEATURES.map((lake) => [lake.id, 0])),
-                )
-              }
+                );
+                clearRunResult();
+              }}
+              onRun={handleRun}
             />
           )}
         </div>
@@ -166,7 +217,7 @@ function MapExplorerInner() {
               </span>
             </div>
             <p className="mt-1 text-[10px] leading-snug text-slate-600">
-              Sum of slider settings only; downstream impacts are not modeled.
+              Input settings only; the template adapter does not calculate downstream impacts.
             </p>
           </section>
         </>

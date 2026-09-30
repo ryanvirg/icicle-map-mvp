@@ -4,7 +4,7 @@ Full-screen interactive map of the Icicle Creek watershed. MapLibre renders the 
 
 The map includes Data and Forecast modes. In Data mode, selecting a feature opens a compact, translucent bottom panel. Recent Icicle Creek flow uses the existing USGS endpoint; when live data is unavailable, the endpoint returns clearly labeled illustrative fixture values. The lake plots use synthetic monthly demo values in feet from 2020 through 2025: checked USGS NWIS lake records did not provide daily gage-height series for the mapped lakes. These synthetic values use an arbitrary baseline and are not observed elevations.
 
-Forecast mode provides a 0–50 cfs slider for each mapped lake and a combined slider-setting summary. The controls appear beneath the mode toggle and retain their values when switching modes. The center summary is unchanged. These initial demo controls are not verified operating limits, do not change the data plots, and do not calculate downstream flows or lake levels. Treat them as a UI prototype, not an operational recommendation or forecast.
+Forecast mode lets users choose Dry, Average, or Wet example flow classes, adjust the 0–50 cfs release slider for each mapped lake, and submit those inputs to a replaceable forecast-engine interface. The current template adapter maps the choices to P25/P50/P75 of eight points in the bundled USGS gage fixture and confirms the release settings; these are sample percentiles, not annual wet/average/dry classifications. The adapter does not run DHSVM or calculate downstream flows or lake levels, and slider ranges are unverified. Treat the workflow as a UI prototype, not an operational recommendation or forecast.
 
 ## Run locally
 
