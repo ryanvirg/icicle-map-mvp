@@ -20,13 +20,35 @@ type Props = {
 type MapInstance = import("maplibre-gl").Map;
 
 function applyDataOverlay(map: MapInstance, dataOverlay: MapOverlay | null) {
-  const hucLayer = "huc12-data-overlay";
-  const climateLayer = "climate-data-overlay";
-  const activeLayer = dataOverlay?.source === "climate" ? climateLayer : hucLayer;
-  for (const layer of [hucLayer, climateLayer]) {
-    if (map.getLayer(layer)) map.setLayoutProperty(layer, "visibility", layer === activeLayer && dataOverlay ? "visible" : "none");
+  const vectorLayers = {
+    huc12: "huc12-data-overlay",
+    climate: "climate-data-overlay",
+  };
+  const overlayLayers = [
+    ...Object.values(vectorLayers),
+    "nlcd-land-cover-overlay",
+    "nlcd-tree-canopy-overlay",
+    "terrain-relief-overlay",
+    "terrain-slope-overlay",
+    "ssurgo-mapunits-overlay",
+    "prism-precipitation-overlay",
+    "prism-temperature-overlay",
+  ];
+  const activeLayer = dataOverlay
+    ? dataOverlay.source === "raster"
+      ? dataOverlay.rasterLayer
+      : vectorLayers[dataOverlay.source]
+    : null;
+  for (const layer of overlayLayers) {
+    if (map.getLayer(layer)) {
+      map.setLayoutProperty(
+        layer,
+        "visibility",
+        layer === activeLayer ? "visible" : "none",
+      );
+    }
   }
-  if (!dataOverlay || !map.getLayer(activeLayer)) return;
+  if (!dataOverlay || !activeLayer || dataOverlay.source === "raster" || !map.getLayer(activeLayer)) return;
   map.setPaintProperty(activeLayer, "fill-color", [
     "interpolate", ["linear"], ["to-number", ["get", dataOverlay.property], dataOverlay.min],
     dataOverlay.min, dataOverlay.colors[0],

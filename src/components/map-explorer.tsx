@@ -2,6 +2,7 @@
 
 import { AreaDataPanel } from "@/components/area-data-panel";
 import { AssetDataPanel } from "@/components/asset-data-panel";
+import { MapOverlayLegend } from "@/components/map-overlay-legend";
 import { ScenarioReleaseControls } from "@/components/scenario-release-controls";
 import { WatershedMap } from "@/components/watershed-map";
 import {
@@ -41,6 +42,9 @@ function MapExplorerInner() {
   const activeLakeCount = Object.values(releaseRates).filter(
     (rate) => rate > 0,
   ).length;
+  const featurePanelHeight = selectedFeature?.kind === "creek"
+    ? "clamp(260px,32dvh,320px)"
+    : "clamp(180px,25dvh,220px)";
 
   function clearRunResult() {
     setRunState("idle");
@@ -73,7 +77,9 @@ function MapExplorerInner() {
       <WatershedMap
         className={`absolute inset-x-0 top-0 ${
           mode === "data"
-            ? "bottom-[calc(clamp(180px,25dvh,220px)+24px)]"
+            ? selectedFeature?.kind === "creek"
+              ? "bottom-[calc(clamp(260px,32dvh,320px)+24px)]"
+              : "bottom-[calc(clamp(180px,25dvh,220px)+24px)]"
             : "bottom-[88px]"
         }`}
         selectedFeatureId={selectedFeature?.id ?? null}
@@ -85,7 +91,9 @@ function MapExplorerInner() {
         aria-label="Watershed explorer controls"
         className={`absolute left-4 top-4 z-20 flex w-[min(22rem,calc(100%-4.5rem))] flex-col overflow-hidden rounded-xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-sm ${
           mode === "data"
-            ? "max-h-[calc(100dvh-clamp(180px,25dvh,220px)-56px)]"
+            ? selectedFeature?.kind === "creek"
+              ? "max-h-[calc(100dvh-clamp(260px,32dvh,320px)-56px)]"
+              : "max-h-[calc(100dvh-clamp(180px,25dvh,220px)-56px)]"
             : "max-h-[calc(100dvh-120px)]"
         }`}
       >
@@ -179,20 +187,14 @@ function MapExplorerInner() {
       {mode === "data" ? (
         <>
           <AssetDataPanel
+            key={selectedFeature?.id ?? "no-feature"}
             feature={selectedFeature}
             onClose={() => setSelectedFeature(null)}
+            panelHeight={featurePanelHeight}
           />
           {activeOverlay && (() => {
             const overlay = MAP_OVERLAYS[activeOverlay];
-            return <section aria-label="Map legend" className="pointer-events-none absolute bottom-[calc(clamp(180px,25dvh,220px)+36px)] right-4 z-20 w-52 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-md backdrop-blur-sm">
-              <div className="flex items-start justify-between gap-2">
-                <div><h2 className="text-xs font-semibold text-slate-800">{overlay.label}</h2><p className="mt-0.5 text-[10px] text-slate-500">{overlay.source === "climate" ? "ERA5 grid · 0.25° cells" : "EPA WSIO · HUC12 subwatersheds"}</p></div>
-                <button type="button" className="pointer-events-auto -mt-1 -mr-1 rounded px-1 text-sm text-slate-500 hover:bg-slate-100" aria-label="Clear map overlay" onClick={() => setActiveOverlay(null)}>×</button>
-              </div>
-              <div className="mt-2 h-2 rounded" style={{ background: `linear-gradient(90deg, ${overlay.colors.join(", ")})` }} />
-              <div className="mt-1 flex justify-between text-[9px] tabular-nums text-slate-600"><span>{overlay.min} {overlay.unit}</span><span>{overlay.max} {overlay.unit}</span></div>
-              <p className="mt-2 text-[9px] leading-snug text-slate-500">{overlay.source === "climate" ? "Historical grid-cell normals clipped to the watershed." : "Area-level source estimates; polygons show subwatershed summaries."}</p>
-            </section>;
+            return <MapOverlayLegend overlay={overlay} onClear={() => setActiveOverlay(null)} />;
           })()}
         </>
       ) : (

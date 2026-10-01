@@ -1,0 +1,230 @@
+{
+  "generatedAt": "2026-10-01",
+  "studyArea": "Union of the six EPA WSIO HUC12 geometries already bundled with the app",
+  "bboxEpsg3857": [
+    -13484555.18,
+    6018294.06,
+    -13429120.88,
+    6061036.69
+  ],
+  "imageCoordinates": [
+    [
+      -121.13382019364032,
+      47.72385620736836
+    ],
+    [
+      -120.63584535379,
+      47.72385620736836
+    ],
+    [
+      -120.63584535379,
+      47.464921664429575
+    ],
+    [
+      -121.13382019364032,
+      47.464921664429575
+    ]
+  ],
+  "assets": {
+    "landCover": {
+      "url": "/overlays/nlcd-2025-land-cover.webp",
+      "dataset": "USGS Annual NLCD Collection 1.2 Land Cover",
+      "year": 2025,
+      "groundResolutionMeters": 30,
+      "representation": "Locally cached, clipped WMS-rendered raster image for display",
+      "sourceUrl": "https://www.mrlc.gov/data/land-cover-conus-38",
+      "attribution": "USGS / MRLC Annual NLCD 2025",
+      "width": 1247,
+      "height": 961
+    },
+    "treeCanopy": {
+      "url": "/overlays/nlcd-2025-tree-canopy.webp",
+      "dataset": "NLCD Tree Canopy Cover (USDA Forest Service / MRLC)",
+      "year": 2025,
+      "groundResolutionMeters": 30,
+      "representation": "Locally cached, clipped WMS-rendered raster image for display",
+      "sourceUrl": "https://www.mrlc.gov/data/nlcd-tree-canopy-cover",
+      "attribution": "USDA Forest Service / USGS / MRLC, NLCD Tree Canopy Cover 2025",
+      "width": 1247,
+      "height": 961
+    },
+    "terrainRelief": {
+      "url": "/overlays/usgs-3dep-elevation-relief.webp",
+      "dataset": "USGS 3D Elevation Program (3DEP) seamless elevation",
+      "groundResolutionMeters": 10,
+      "representation": "Local elevation-tinted, four-direction hillshade derived from a clipped DEM",
+      "sourceUrl": "https://www.usgs.gov/3d-elevation-program/about-3dep-products-services",
+      "attribution": "USGS 3DEP elevation data; relief rendered for Icicle Creek Explorer",
+      "width": 3739,
+      "height": 2883,
+      "minElevationM": 377.8,
+      "maxElevationM": 2385.2,
+      "actualMinElevationM": 334.6,
+      "actualMaxElevationM": 2864.2,
+      "slopeP95Degrees": 47.7
+    },
+    "slope": {
+      "url": "/overlays/usgs-3dep-slope.webp",
+      "dataset": "USGS 3DEP seamless elevation; slope derived by this project",
+      "groundResolutionMeters": 10,
+      "representation": "Local slope raster derived from the clipped 3DEP DEM; shown in degrees",
+      "sourceUrl": "https://www.usgs.gov/3d-elevation-program/about-3dep-products-services",
+      "attribution": "Derived from USGS 3DEP elevation data by Icicle Creek Explorer",
+      "width": 3739,
+      "height": 2883,
+      "minElevationM": 377.8,
+      "maxElevationM": 2385.2,
+      "actualMinElevationM": 334.6,
+      "actualMaxElevationM": 2864.2,
+      "slopeP95Degrees": 47.7
+    },
+    "soilMapunits": {
+      "url": "/overlays/nrcs-ssurgo-hydrologic-groups.webp",
+      "dataset": "NRCS-derived SSURGO map-unit hydrologic soil group (HydrolGrp_DCD)",
+      "period": "Current published SSURGO interpretations; soil survey dates vary by map unit",
+      "groundResolutionMeters": 30,
+      "representation": "Map-unit dominant hydrologic soil group rasterized to an approximately 30 m grid and clipped to the watershed",
+      "sourceUrl": "https://services1.arcgis.com/gGHDlz6USftL5Pau/ArcGIS/rest/services/Soils_SSURGO/FeatureServer/0",
+      "classCoveragePct": {
+        "A \u00b7 high infiltration": 13.8,
+        "A/D \u00b7 drained / undrained": 0.4,
+        "B \u00b7 moderate-high infiltration": 31.7,
+        "B/D \u00b7 drained / undrained": 0.8,
+        "C \u00b7 moderate-low infiltration": 23.3,
+        "C/D \u00b7 drained / undrained": 0.9,
+        "D \u00b7 low infiltration": 0.1,
+        "Not rated": 29.0
+      },
+      "classes": [
+        {
+          "label": "A \u00b7 high infiltration",
+          "color": "#24834a"
+        },
+        {
+          "label": "A/D \u00b7 drained / undrained",
+          "color": "#85c9a5"
+        },
+        {
+          "label": "B \u00b7 moderate-high infiltration",
+          "color": "#9abf36"
+        },
+        {
+          "label": "B/D \u00b7 drained / undrained",
+          "color": "#71a6c7"
+        },
+        {
+          "label": "C \u00b7 moderate-low infiltration",
+          "color": "#f1cb4b"
+        },
+        {
+          "label": "C/D \u00b7 drained / undrained",
+          "color": "#b28acb"
+        },
+        {
+          "label": "D \u00b7 low infiltration",
+          "color": "#e36a3d"
+        },
+        {
+          "label": "Not rated",
+          "color": "#a8adb4"
+        }
+      ],
+      "width": 1247,
+      "height": 961
+    },
+    "climatePrecipitation": {
+      "url": "/overlays/prism-annual-precipitation.webp",
+      "dataset": "PRISM 30-year mean annual precipitation (sum of monthly normals)",
+      "period": "1991\u20132020 normals",
+      "groundResolutionMeters": 4000,
+      "representation": "Locally cached, clipped PRISM raster image for display; precipitation includes rain and snow water equivalent",
+      "sourceUrl": "https://prism.oregonstate.edu/normals/",
+      "minInches": 22.4,
+      "maxInches": 112.3,
+      "classBreaks": [
+        42.15,
+        59.73,
+        74.0,
+        84.16
+      ],
+      "colors": [
+        "#f6e8a6",
+        "#e7b95c",
+        "#91b77a",
+        "#3f9aa0",
+        "#344b91"
+      ],
+      "legendItems": [
+        {
+          "label": "22.4\u201342.1 in",
+          "color": "#f6e8a6"
+        },
+        {
+          "label": "42.1\u201359.7 in",
+          "color": "#e7b95c"
+        },
+        {
+          "label": "59.7\u201374.0 in",
+          "color": "#91b77a"
+        },
+        {
+          "label": "74.0\u201384.2 in",
+          "color": "#3f9aa0"
+        },
+        {
+          "label": "84.2\u2013112.3 in",
+          "color": "#344b91"
+        }
+      ],
+      "width": 14,
+      "height": 11
+    },
+    "climateTemperature": {
+      "url": "/overlays/prism-annual-mean-temperature.webp",
+      "dataset": "PRISM 30-year mean annual temperature (day-weighted monthly normals)",
+      "period": "1991\u20132020 normals",
+      "groundResolutionMeters": 4000,
+      "representation": "Locally cached, clipped PRISM raster image for display; gridded estimates are not station measurements or forecasts",
+      "sourceUrl": "https://prism.oregonstate.edu/normals/",
+      "minCelsius": 0.7,
+      "maxCelsius": 9.6,
+      "classBreaks": [
+        3.17,
+        3.63,
+        4.23,
+        5.45
+      ],
+      "colors": [
+        "#3b4cc0",
+        "#688aef",
+        "#9abbff",
+        "#f2d06b",
+        "#d1492e"
+      ],
+      "legendItems": [
+        {
+          "label": "33.2\u201337.7 \u00b0F",
+          "color": "#3b4cc0"
+        },
+        {
+          "label": "37.7\u201338.5 \u00b0F",
+          "color": "#688aef"
+        },
+        {
+          "label": "38.5\u201339.6 \u00b0F",
+          "color": "#9abbff"
+        },
+        {
+          "label": "39.6\u201341.8 \u00b0F",
+          "color": "#f2d06b"
+        },
+        {
+          "label": "41.8\u201349.3 \u00b0F",
+          "color": "#d1492e"
+        }
+      ],
+      "width": 14,
+      "height": 11
+    }
+  }
+}

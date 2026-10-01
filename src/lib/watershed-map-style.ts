@@ -1,6 +1,14 @@
 import { WATERSHED_FEATURES, WATERSHED_GEOJSON } from "@/data/creeks";
 import { CLIMATE_OVERLAY_GEOJSON, HUC12_OVERLAY_GEOJSON } from "@/data/map-overlays";
+import rasterMetadata from "@/data/sources/icicle-raster-overlay-metadata.json";
 import type { StyleSpecification } from "maplibre-gl";
+
+const rasterCoordinates = rasterMetadata.imageCoordinates as [
+  [number, number],
+  [number, number],
+  [number, number],
+  [number, number],
+];
 
 /** Muted public basemap with consistent creek and lake symbology. */
 export function createWatershedStyle(): StyleSpecification {
@@ -35,6 +43,41 @@ export function createWatershedStyle(): StyleSpecification {
       },
       "huc12-overlay": { type: "geojson", data: HUC12_OVERLAY_GEOJSON },
       "climate-overlay": { type: "geojson", data: CLIMATE_OVERLAY_GEOJSON },
+      "nlcd-land-cover": {
+        type: "image",
+        url: rasterMetadata.assets.landCover.url,
+        coordinates: rasterCoordinates,
+      },
+      "nlcd-tree-canopy": {
+        type: "image",
+        url: rasterMetadata.assets.treeCanopy.url,
+        coordinates: rasterCoordinates,
+      },
+      "terrain-relief": {
+        type: "image",
+        url: rasterMetadata.assets.terrainRelief.url,
+        coordinates: rasterCoordinates,
+      },
+      "terrain-slope": {
+        type: "image",
+        url: rasterMetadata.assets.slope.url,
+        coordinates: rasterCoordinates,
+      },
+      "ssurgo-mapunits": {
+        type: "image",
+        url: rasterMetadata.assets.soilMapunits.url,
+        coordinates: rasterCoordinates,
+      },
+      "prism-precipitation": {
+        type: "image",
+        url: "/overlays/prism-annual-precipitation.webp",
+        coordinates: rasterCoordinates,
+      },
+      "prism-temperature": {
+        type: "image",
+        url: "/overlays/prism-annual-mean-temperature.webp",
+        coordinates: rasterCoordinates,
+      },
       gauges: { type: "geojson", data: "/gauges.geojson" },
     },
     layers: [
@@ -66,6 +109,55 @@ export function createWatershedStyle(): StyleSpecification {
           "fill-opacity": 0.72,
           "fill-outline-color": "#ffffff",
         },
+      },
+      {
+        id: "nlcd-land-cover-overlay",
+        type: "raster",
+        source: "nlcd-land-cover",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.82, "raster-resampling": "nearest" },
+      },
+      {
+        id: "nlcd-tree-canopy-overlay",
+        type: "raster",
+        source: "nlcd-tree-canopy",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.82, "raster-resampling": "nearest" },
+      },
+      {
+        id: "terrain-relief-overlay",
+        type: "raster",
+        source: "terrain-relief",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.88, "raster-resampling": "linear" },
+      },
+      {
+        id: "terrain-slope-overlay",
+        type: "raster",
+        source: "terrain-slope",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.8, "raster-resampling": "linear" },
+      },
+      {
+        id: "ssurgo-mapunits-overlay",
+        type: "raster",
+        source: "ssurgo-mapunits",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.82, "raster-resampling": "nearest" },
+      },
+      {
+        id: "prism-precipitation-overlay",
+        type: "raster",
+        source: "prism-precipitation",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.78, "raster-resampling": "nearest" },
+      },
+      {
+        id: "prism-temperature-overlay",
+        type: "raster",
+        source: "prism-temperature",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.78, "raster-resampling": "nearest" },
       },
       {
         id: "lake-polygons",

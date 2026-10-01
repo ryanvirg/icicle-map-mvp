@@ -41,7 +41,6 @@ export function DetailPanel({
 
   useEffect(() => {
     if (feature?.id !== "usgs-12458000") return;
-    setUsgsState("loading");
     fetch("/api/usgs/12458000")
       .then((r) => r.json())
       .then((data) => {
@@ -182,7 +181,10 @@ export function DetailPanel({
               : undefined
           }
           single={usgs?.series}
-          loading={usgsState === "loading"}
+          loading={
+            feature.id === "usgs-12458000" &&
+            (usgsState === "idle" || usgsState === "loading")
+          }
           emptyMessage="No gage data."
         />
       )}

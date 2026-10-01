@@ -34,6 +34,13 @@ describe("interactive creek and lake map style", () => {
         "basemap",
         "huc12-data-overlay",
         "climate-data-overlay",
+        "nlcd-land-cover-overlay",
+        "nlcd-tree-canopy-overlay",
+        "terrain-relief-overlay",
+        "terrain-slope-overlay",
+        "ssurgo-mapunits-overlay",
+        "prism-precipitation-overlay",
+        "prism-temperature-overlay",
         "lake-polygons",
         "creek-casing",
         "creek-lines",
@@ -44,6 +51,21 @@ describe("interactive creek and lake map style", () => {
     );
     assert.ok(style.layers.some((layer) => layer.id === "lake-polygons"));
     assert.ok(style.layers.some((layer) => layer.id === "creek-lines"));
+    for (const [sourceId, expectedUrl] of [
+      ["nlcd-land-cover", "/overlays/nlcd-2025-land-cover.webp"],
+      ["nlcd-tree-canopy", "/overlays/nlcd-2025-tree-canopy.webp"],
+      ["terrain-relief", "/overlays/usgs-3dep-elevation-relief.webp"],
+      ["terrain-slope", "/overlays/usgs-3dep-slope.webp"],
+      ["ssurgo-mapunits", "/overlays/nrcs-ssurgo-hydrologic-groups.webp"],
+      ["prism-precipitation", "/overlays/prism-annual-precipitation.webp"],
+      ["prism-temperature", "/overlays/prism-annual-mean-temperature.webp"],
+    ]) {
+      const source = style.sources[sourceId];
+      assert.equal(source.type, "image");
+      if (source.type !== "image") assert.fail("Expected a static image raster source");
+      assert.equal(source.url, expectedUrl);
+      assert.equal(source.coordinates.length, 4);
+    }
     const gauges = style.sources.gauges;
     assert.equal(gauges.type, "geojson");
     if (gauges.type !== "geojson") assert.fail("Expected a GeoJSON gauge source");

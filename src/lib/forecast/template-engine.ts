@@ -29,8 +29,8 @@ function sampleQuantile(values: number[], percentile: number): number {
 
 /**
  * Demo adapter for the future DHSVM integration.
- * It validates and packages user choices, but deliberately does not simulate
- * watershed or release impacts.
+ * It builds fixture-based display curves with explicitly uncalibrated routing
+ * adjustments; it is not a watershed or release-impact model.
  */
 export const templateForecastEngine: ForecastEngine = {
   async run(input: ForecastRunInput): Promise<ForecastRunResult> {

@@ -2,6 +2,7 @@
 
 import type { WatershedMapFeature } from "@/data/creeks";
 import type { DailySeries } from "@/data/hydrology";
+import { getIllustrativeStreamflow } from "@/data/illustrative-streamflow";
 import { getIllustrativeLakeLevels } from "@/data/lake-water-levels";
 import {
   CartesianGrid,
@@ -23,11 +24,13 @@ type StreamflowPayload = {
   name: string;
   series: DailySeries;
   source: DataSource;
+  years: number;
 };
 
 type Props = {
   feature: WatershedMapFeature | null;
   onClose: () => void;
+  panelHeight: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,7 +57,9 @@ function isStreamflowPayload(value: unknown): value is StreamflowPayload {
     typeof value.name === "string" &&
     typeof value.dataAsOf === "string" &&
     (value.source === "usgs_live" || value.source === "fixture") &&
+    typeof value.years === "number" &&
     isDailySeries(value.series) &&
+    value.series.length > 0 &&
     (value.fallbackReason === undefined ||
       typeof value.fallbackReason === "string")
   );
@@ -68,33 +73,37 @@ function EmptyDataMessage({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AssetDataPanel({ feature, onClose }: Props) {
+export function AssetDataPanel({ feature, onClose, panelHeight }: Props) {
   const isIcicleCreek =
     feature?.kind === "creek" &&
     feature.name.trim().toLowerCase() === "icicle creek";
   const [streamflow, setStreamflow] = useState<StreamflowPayload | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isIcicleCreek);
   const [error, setError] = useState<string | null>(null);
+  const [streamflowYears, setStreamflowYears] = useState<1 | 5 | 10>(5);
   const lakeLevels = useMemo(
     () =>
       feature?.kind === "lake" ? getIllustrativeLakeLevels(feature) : [],
     [feature],
   );
+  const illustrativeStreamflow = useMemo(
+    () => feature?.kind === "creek" ? {
+      name: feature.name,
+      dataAsOf: "2025-12-01",
+      years: streamflowYears,
+      source: "fixture" as const,
+      series: getIllustrativeStreamflow(feature, streamflowYears),
+    } : null,
+    [feature, streamflowYears],
+  );
+  const displayedStreamflow = isIcicleCreek ? streamflow : illustrativeStreamflow;
 
   useEffect(() => {
-    if (!isIcicleCreek) {
-      setStreamflow(null);
-      setLoading(false);
-      setError(null);
-      return;
-    }
+    if (!isIcicleCreek) return;
 
     const controller = new AbortController();
-    setStreamflow(null);
-    setError(null);
-    setLoading(true);
 
-    fetch("/api/usgs/12458000", { signal: controller.signal })
+    fetch(`/api/usgs/12458000?years=${streamflowYears}`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Streamflow request failed (${response.status}).`);
@@ -107,6 +116,15 @@ export function AssetDataPanel({ feature, onClose }: Props) {
       })
       .catch((requestError: unknown) => {
         if (controller.signal.aborted) return;
+        if (feature?.kind === "creek") {
+          setStreamflow({
+            name: feature.name,
+            dataAsOf: "2025-12-01",
+            years: streamflowYears,
+            source: "fixture",
+            series: getIllustrativeStreamflow(feature, streamflowYears),
+          });
+        }
         setError(
           requestError instanceof Error
             ? requestError.message
@@ -118,13 +136,13 @@ export function AssetDataPanel({ feature, onClose }: Props) {
       });
 
     return () => controller.abort();
-  }, [isIcicleCreek]);
+  }, [feature, isIcicleCreek, streamflowYears]);
 
   return (
     <section
       aria-label="Selected asset data"
       className="absolute bottom-3 left-1/2 z-20 w-[calc(100%-1.5rem)] max-w-3xl -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#176b7c]/75 bg-white/45 px-3 pb-2 pt-2 shadow-[0_12px_36px_rgba(15,23,42,0.16)] backdrop-blur-lg sm:px-4"
-      style={{ height: "clamp(180px, 25dvh, 220px)" }}
+      style={{ height: panelHeight }}
     >
       <div className="mx-auto w-full">
         <div className="mb-1.5 flex items-start justify-between gap-4">
@@ -240,19 +258,35 @@ export function AssetDataPanel({ feature, onClose }: Props) {
           <div className="grid gap-3 md:grid-cols-[minmax(0,2fr)_minmax(180px,1fr)]">
             <div>
               <h3 className="mb-2 text-sm font-medium text-slate-800">
-                {feature.name === "Icicle Creek"
-                  ? "Recent streamflow"
-                  : "Creek flow"}
+                {isIcicleCreek ? "Historical mean daily flow" : "Illustrative monthly flow history"}
               </h3>
-              {loading ? (
+              <label className="mb-1.5 flex items-center gap-2 text-[10px] text-slate-600">
+                  Period
+                  <select
+                    aria-label="Streamflow history period"
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-[10px]"
+                    value={streamflowYears}
+                    onChange={(event) => {
+                      setStreamflow(null);
+                      setError(null);
+                      setLoading(true);
+                      setStreamflowYears(Number(event.target.value) as 1 | 5 | 10);
+                    }}
+                  >
+                    <option value={1}>1 year</option>
+                    <option value={5}>5 years</option>
+                    <option value={10}>10 years</option>
+                  </select>
+                </label>
+              {loading && isIcicleCreek ? (
                 <EmptyDataMessage>Loading streamflow data…</EmptyDataMessage>
-              ) : error ? (
-                <EmptyDataMessage>{error}</EmptyDataMessage>
-              ) : streamflow ? (
+              ) : !displayedStreamflow ? (
+                <EmptyDataMessage>{error ?? "Streamflow data could not be loaded for this selection."}</EmptyDataMessage>
+              ) : (
                 <div className="h-32 min-w-0 rounded-lg border border-[#176b7c]/20 bg-white/25 p-1.5">
                   <ResponsiveContainer width="100%" height="100%" minWidth={160}>
                     <LineChart
-                      data={streamflow.series}
+                      data={displayedStreamflow.series}
                       margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -286,16 +320,12 @@ export function AssetDataPanel({ feature, onClose }: Props) {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              ) : (
-                <EmptyDataMessage>
-                  No streamflow series is connected for this creek yet.
-                </EmptyDataMessage>
               )}
-              {streamflow && (
+              {displayedStreamflow && (
                 <p className="mt-1 text-[11px] text-slate-500">
-                  {streamflow.source === "usgs_live"
-                    ? `USGS 12458000 · live data · as of ${streamflow.dataAsOf}`
-                    : `USGS 12458000 · illustrative fixture, not observed measurements · as of ${streamflow.dataAsOf}`}
+                  {displayedStreamflow.source === "usgs_live"
+                    ? <>USGS 12458000 · observed daily mean discharge · {displayedStreamflow.years} year{displayedStreamflow.years === 1 ? "" : "s"} · latest value {displayedStreamflow.dataAsOf}</>
+                    : <>Illustrative demo only · synthetic monthly series for {displayedStreamflow.years} years · not gauge observations{error ? ` · ${error}` : ""}</>}
                 </p>
               )}
             </div>

@@ -1,20 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, CloudSun, Layers, Mountain, Trees, Waves, Factory } from "lucide-react";
 import { AREA_DATA_CATEGORIES, AREA_SUMMARY } from "@/data/area-overview";
 import { CREEK_REACHES, type WatershedMapFeature } from "@/data/creeks";
 import { MAP_OVERLAYS, type MapOverlayId, defaultOverlayForCategory } from "@/data/map-overlays";
+import { getIllustrativeStreamflow } from "@/data/illustrative-streamflow";
 
 const icons = [Trees, Layers, Mountain, CloudSun, Factory];
 const mappedLength = CREEK_REACHES.reduce((sum, creek) => sum + (creek.lengthKm ?? 0), 0);
+const metricOverlays: Record<string, MapOverlayId> = {};
 
-const metricOverlays: Record<string, MapOverlayId> = {
-  Forest: "forest", "Shrub / scrub": "shrub", "Developed land": "developed",
-  "Group A · high infiltration": "soil-a", "Group B · moderate infiltration": "soil-b",
-  "Group C · slow infiltration": "soil-c", "Group D · very slow infiltration": "soil-d",
-  "Mean elevation": "elevation", "Average slope": "slope",
-  "Annual precipitation": "precipitation", "Mean temperature": "temperature",
+const rasterChoices: Record<"land" | "soil" | "terrain" | "climate", MapOverlayId[]> = {
+  land: ["land-cover", "tree-canopy"],
+  soil: ["soil-mapunits"],
+  terrain: ["elevation", "slope"],
+  climate: ["precipitation", "temperature"],
 };
 
 export function AreaDataPanel({ onSelectFeature, activeOverlay, onSelectOverlay }: {
@@ -23,6 +24,24 @@ export function AreaDataPanel({ onSelectFeature, activeOverlay, onSelectOverlay 
   onSelectOverlay: (overlay: MapOverlayId | null) => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>("streams");
+  const [gaugeHistory, setGaugeHistory] = useState<{
+    source: "usgs_live" | "fixture";
+    series: { date: string; value: number }[];
+  } | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/usgs/12458000?years=1", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Gauge history unavailable");
+        const data = await response.json();
+        setGaugeHistory({ source: "usgs_live", series: data.series ?? [] });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGaugeHistory({ source: "fixture", series: [] });
+      });
+    return () => controller.abort();
+  }, []);
   const categories = [
     { id: "streams", title: "Streams", status: "Mapped features", Icon: Waves },
     ...AREA_DATA_CATEGORIES.map((category, index) => ({ ...category, Icon: icons[index] })),
@@ -79,19 +98,63 @@ export function AreaDataPanel({ onSelectFeature, activeOverlay, onSelectOverlay 
                   <ul className="space-y-1">
                     {CREEK_REACHES.map((creek) => (
                       <li key={creek.id}>
-                        <button type="button" onClick={() => onSelectFeature(creek)} className="flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[#176b7c] hover:bg-slate-100">
-                          <span>{creek.name}</span>
-                          <span className="shrink-0 text-slate-500">{creek.lengthKm?.toFixed(1)} km</span>
+                        <button type="button" onClick={() => onSelectFeature(creek)} className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-left hover:border-[#176b7c]/50 hover:bg-slate-50">
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[11px] font-semibold text-slate-800">{creek.name}</span>
+                            <span className="mt-0.5 block text-[9px] leading-snug text-slate-500">
+                              {creek.name.trim().toLowerCase() === "icicle creek"
+                                ? gaugeHistory?.source === "usgs_live" && gaugeHistory.series.length > 0
+                                  ? `USGS 12458000 · latest daily mean ${gaugeHistory.series.at(-1)?.value.toFixed(0)} cfs · ${gaugeHistory.series.at(-1)?.date}`
+                                  : gaugeHistory?.source === "fixture"
+                                    ? "USGS history unavailable · chart uses labeled demo data"
+                                    : "USGS 12458000 · loading daily flow history…"
+                                : (() => {
+                                    const values = getIllustrativeStreamflow(creek, 5).map((point) => point.value);
+                                    return `Synthetic monthly flow · ${Math.min(...values).toFixed(0)}–${Math.max(...values).toFixed(0)} cfs · not measured`;
+                                  })()}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-right">
+                            <span className="block text-[9px] text-slate-500">{creek.lengthKm?.toFixed(1)} km</span>
+                            <span className="mt-0.5 block text-[9px] font-semibold text-[#176b7c]">View chart</span>
+                          </span>
                         </button>
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-2 text-[10px] text-slate-500">Select Icicle Creek to view its streamflow chart.</p>
+                  <p className="mt-2 text-[10px] text-slate-500">Select a reach to open its 1-, 5-, or 10-year flow chart. Only Icicle Creek has a verified gauge connection.</p>
                   <p className="mt-2 text-[10px] text-slate-500">Source: bundled map geometry · Survey date not supplied.</p>
                 </>
               ) : category ? (
                 <>
                   <p className="mb-3 text-[11px] leading-relaxed text-slate-600">{category.description}</p>
+                  {(id === "land" || id === "soil" || id === "terrain" || id === "climate") && (
+                    <div className="mb-3">
+                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        {id === "climate" ? "Gridded climate maps" : id === "soil" ? "Detailed soil map" : "Detailed map layers"}
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {rasterChoices[id].map((overlayId) => {
+                          const overlay = MAP_OVERLAYS[overlayId];
+                          const selected = overlayId === activeOverlay;
+                          return (
+                            <button
+                              key={overlayId}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() => onSelectOverlay(selected ? null : overlayId)}
+                              className={`rounded-md border px-2 py-2 text-left text-[10px] font-medium leading-tight transition-colors ${selected ? "border-[#176b7c] bg-[#176b7c]/10 text-[#145866]" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
+                            >
+                              {overlay.label}
+                              <span className="mt-0.5 block text-[9px] font-normal text-slate-500">
+                                {overlay.resolution}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <dl className="divide-y divide-slate-100">
                     {category.metrics.map((metric) => (
                       <div key={metric.label} className="py-1.5 text-[11px]">
